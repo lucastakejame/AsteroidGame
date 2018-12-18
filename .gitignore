@@ -1,0 +1,9 @@
+
+Binaries
+*.sln
+.vs
+Intermediate
+Saved
+Assets
+Build
+Notas.txt
