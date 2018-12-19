@@ -9,9 +9,11 @@
 #include "Camera/CameraComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/InputComponent.h"
+#include "Components/AudioComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerInput.h"
+#include "Kismet/GameplayStatics.h"
 #include "Camera/CameraActor.h"
 
 #include "DebugUtils.h"
@@ -29,13 +31,22 @@ AAsteroidShip::AAsteroidShip()
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
 	// Mesh setup
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> ShipMesh(TEXT("/Game/TwinStick/Meshes/TwinStickUFO.TwinStickUFO"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> shipMesh(TEXT("/Game/TwinStick/Meshes/TwinStickUFO.TwinStickUFO"));
 
 	mShipMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShipMesh"));
 	mShipMeshComponent->SetEnableGravity(false);
-	mShipMeshComponent->SetStaticMesh(ShipMesh.Object);
+	mShipMeshComponent->SetStaticMesh(shipMesh.Object);
 
 	RootComponent = mShipMeshComponent;
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> fireAudio(TEXT("/Game/TwinStick/Audio/TwinStickFire.TwinStickFire"));
+	static ConstructorHelpers::FObjectFinder<USoundBase> thrustAudio(TEXT("/Game/Asteroids/Sounds/SW_ShipPropulsionLoop.SW_ShipPropulsionLoop"));
+	
+	mFireSound = fireAudio.Object;
+	mThrustSound = thrustAudio.Object;
+
+	mThrustAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("ThrustAudio"));
+	mThrustAudioComponent->SetSound(thrustAudio.Object);
 
 	mMaxSpeed = 1000;
 	mRotateSpeed = 200;
@@ -70,18 +81,25 @@ void AAsteroidShip::Tick(float DeltaTime)
 
 	if (forwardValue > 0.f)
 	{
+		if (!mThrustAudioComponent->IsPlaying())
+		{
+			mThrustAudioComponent->Play();
+		}
+
 		mCurrentVelocity = mCurrentVelocity + GetActorForwardVector() * accelPerFrame;
 		mCurrentVelocity = mCurrentVelocity.GetClampedToMaxSize(mMaxSpeed * DeltaTime);
+	}
+	else
+	{
+		mThrustAudioComponent->Stop();
 	}
 	
 	this->AddActorWorldOffset(mCurrentVelocity);
 
 	if (mShooting)
 	{
-		log("SHOOT")
 		Shoot();
 	}
-
 		
 }
 
@@ -92,14 +110,10 @@ void AAsteroidShip::Shoot()
 		return;
 	}
 
-	log("CAN SHOOT?");
-
 	if (!mCanShoot)
 	{
 		return;
 	}
-	log("YES!");
-
 
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -110,6 +124,11 @@ void AAsteroidShip::Shoot()
 		+ this->GetActorForwardVector()*90.f,
 		this->GetActorRotation(), params
 	);
+
+	if (mFireSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, mFireSound, GetActorLocation());
+	}
 
 	mCanShoot = false;
 
@@ -124,7 +143,6 @@ void AAsteroidShip::ShootCooldownComplete()
 
 void AAsteroidShip::ToggleShooting()
 {
-	log("TOGGLING");
 	mShooting ^= 1;
 }
 

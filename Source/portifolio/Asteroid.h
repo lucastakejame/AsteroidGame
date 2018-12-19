@@ -25,6 +25,9 @@ public:
 	// Sets default values for this actor's properties
 	AAsteroid();
 
+	// Sound to play each time we fire
+	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
+	class USoundBase* mExplosionSound;
 	
 	FVector mInitialVelocity;
 	

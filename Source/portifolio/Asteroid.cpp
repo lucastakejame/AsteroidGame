@@ -5,6 +5,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "DebugUtils.h"
 
@@ -23,12 +24,14 @@ AAsteroid::AAsteroid()
 	mAsteroidMeshComponent->BodyInstance.bLockZTranslation = true;
 	mAsteroidMeshComponent->SetStaticMesh(asteroidMeshAsset.Object);
 	mAsteroidMeshComponent->SetSimulatePhysics(true);
+	mAsteroidMeshComponent->SetEnableGravity(false);
 
 	RootComponent = mAsteroidMeshComponent;
 
 	mAsteroidMeshComponent->OnComponentHit.AddDynamic(this, &AAsteroid::OnHit);
 
-	mAsteroidMeshComponent->SetEnableGravity(false);
+	static ConstructorHelpers::FObjectFinder<USoundBase> explosionSoundAsset(TEXT("/Game/Asteroids/Sounds/SW_AsteroidExplosion.SW_AsteroidExplosion"));
+	mExplosionSound = explosionSoundAsset.Object;
 
 	mProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	mProjectileMovementComponent->UpdatedComponent = mAsteroidMeshComponent;
@@ -71,7 +74,7 @@ void AAsteroid::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimiti
 	if (OtherActor != NULL && Cast<AportifolioProjectile>(OtherActor))
 	{
 
-		if (mLifeFraction > .2f)
+		if (mLifeFraction > .5f)
 		{
 			UWorld* world = GetWorld();
 
@@ -89,6 +92,11 @@ void AAsteroid::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimiti
 			piece1->FinishSpawning(thisTransform);
 		}
 		
+		if (mExplosionSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, mExplosionSound, GetActorLocation());
+		}
+
 		Destroy();
 	}
 

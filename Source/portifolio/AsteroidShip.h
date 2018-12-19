@@ -12,10 +12,14 @@ UCLASS()
 class PORTIFOLIO_API AAsteroidShip : public APawn
 {
 	GENERATED_BODY()
-
+		
 	/* The mesh component */
 	UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* mShipMeshComponent;
+
+	/* The mesh component */
+	UPROPERTY(Category = Audio, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UAudioComponent* mThrustAudioComponent;
 
 	FVector mCurrentVelocity;
 	bool mCanShoot;
@@ -45,6 +49,12 @@ public:
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	float mShootPeriod;
 	
+	// Sound to play each time we fire
+	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
+	class USoundBase* mFireSound;
+
+	class USoundBase* mThrustSound;
+
 	static const FName mMoveForwardBinding;
 	static const FName mRotateRightBinding;
 	static const FName mShootBinding;
