@@ -16,28 +16,27 @@ AAsteroid::AAsteroid()
 	PrimaryActorTick.bCanEverTick = true;
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> asteroidMeshAsset(TEXT("/Engine/BasicShapes/Cube.Cube"));
-	
+	static ConstructorHelpers::FObjectFinder<USoundBase> explosionSoundAsset(TEXT("/Game/Asteroids/Sounds/SW_AsteroidExplosion.SW_AsteroidExplosion"));
+
 	mAsteroidMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("AsteroidMesh"));
-	
-	mAsteroidMeshComponent->SetupAttachment(RootComponent);
+	RootComponent = mAsteroidMeshComponent;
+	mProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
+
 	mAsteroidMeshComponent->BodyInstance.SetCollisionProfileName("PhysicsBody");
-	mAsteroidMeshComponent->BodyInstance.bLockZTranslation = true;
 	mAsteroidMeshComponent->SetStaticMesh(asteroidMeshAsset.Object);
 	mAsteroidMeshComponent->SetSimulatePhysics(true);
 	mAsteroidMeshComponent->SetEnableGravity(false);
-
-	RootComponent = mAsteroidMeshComponent;
-
+	mAsteroidMeshComponent->BodyInstance.bLockZTranslation = true;
+	mAsteroidMeshComponent->SetNotifyRigidBodyCollision(true);
 	mAsteroidMeshComponent->OnComponentHit.AddDynamic(this, &AAsteroid::OnHit);
 
-	static ConstructorHelpers::FObjectFinder<USoundBase> explosionSoundAsset(TEXT("/Game/Asteroids/Sounds/SW_AsteroidExplosion.SW_AsteroidExplosion"));
 	mExplosionSound = explosionSoundAsset.Object;
 
-	mProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	mProjectileMovementComponent->UpdatedComponent = mAsteroidMeshComponent;
 
 	SetupAsteroid(FVector(10, 0, 0), 1.);
-	
+
+	Tags.Add(FName("doesDamage"));	
 }
 
 void AAsteroid::OnConstruction(const FTransform& Transform)

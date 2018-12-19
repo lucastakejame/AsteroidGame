@@ -53,7 +53,9 @@ public:
 	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
 	class USoundBase* mFireSound;
 
-	class USoundBase* mThrustSound;
+	// Sound to play each time we fire
+	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
+	class USoundBase* mExplosionSound;
 
 	static const FName mMoveForwardBinding;
 	static const FName mRotateRightBinding;
@@ -73,6 +75,10 @@ public:
 	
 	// Handle for 
 	FTimerHandle mTimerHandle_ShootCooldownComplete;
+
+
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	void ShootCooldownComplete();
 	

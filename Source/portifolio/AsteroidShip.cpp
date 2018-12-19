@@ -27,33 +27,37 @@ AAsteroidShip::AAsteroidShip()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
+
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
-	// Mesh setup
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> shipMesh(TEXT("/Game/TwinStick/Meshes/TwinStickUFO.TwinStickUFO"));
+	// Fetching Assets
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> shipMeshAsset(TEXT("/Game/TwinStick/Meshes/TwinStickUFO.TwinStickUFO"));
+	static ConstructorHelpers::FObjectFinder<USoundBase> fireSoundAsset(TEXT("/Game/TwinStick/Audio/TwinStickFire.TwinStickFire"));
+	static ConstructorHelpers::FObjectFinder<USoundBase> thrustSoundAsset(TEXT("/Game/Asteroids/Sounds/SW_ShipPropulsionLoop.SW_ShipPropulsionLoop"));
+	static ConstructorHelpers::FObjectFinder<USoundBase> explosionSoundAsset(TEXT("/Game/Asteroids/Sounds/SW_AsteroidExplosion.SW_AsteroidExplosion"));
 
 	mShipMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShipMesh"));
-	mShipMeshComponent->SetEnableGravity(false);
-	mShipMeshComponent->SetStaticMesh(shipMesh.Object);
-
 	RootComponent = mShipMeshComponent;
-
-	static ConstructorHelpers::FObjectFinder<USoundBase> fireAudio(TEXT("/Game/TwinStick/Audio/TwinStickFire.TwinStickFire"));
-	static ConstructorHelpers::FObjectFinder<USoundBase> thrustAudio(TEXT("/Game/Asteroids/Sounds/SW_ShipPropulsionLoop.SW_ShipPropulsionLoop"));
-	
-	mFireSound = fireAudio.Object;
-	mThrustSound = thrustAudio.Object;
-
 	mThrustAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("ThrustAudio"));
-	mThrustAudioComponent->SetSound(thrustAudio.Object);
+	mThrustAudioComponent->SetupAttachment(mShipMeshComponent);
 
+	mShipMeshComponent->SetEnableGravity(false);
+	mShipMeshComponent->SetStaticMesh(shipMeshAsset.Object);
+	mShipMeshComponent->SetCollisionProfileName("BlockAllDynamic");
+	mShipMeshComponent->OnComponentHit.AddDynamic(this, &AAsteroidShip::OnHit);
+	mShipMeshComponent->SetNotifyRigidBodyCollision(true);
+
+	mFireSound = fireSoundAsset.Object;
+	mExplosionSound = explosionSoundAsset.Object;
+
+	mThrustAudioComponent->SetSound(thrustSoundAsset.Object);
+
+	// Default Values
 	mMaxSpeed = 1000;
 	mRotateSpeed = 200;
 	mAccel = 10;
 	mShootPeriod = .1;
 	mCurrentVelocity = FVector(0, 0, 0);
-		
 	mCanShoot = true;
 	mShooting = false;
 }
@@ -93,14 +97,14 @@ void AAsteroidShip::Tick(float DeltaTime)
 	{
 		mThrustAudioComponent->Stop();
 	}
-	
+
 	this->AddActorWorldOffset(mCurrentVelocity);
 
 	if (mShooting)
 	{
 		Shoot();
 	}
-		
+
 }
 
 void AAsteroidShip::Shoot()
@@ -125,6 +129,9 @@ void AAsteroidShip::Shoot()
 		this->GetActorRotation(), params
 	);
 
+	// Recoil
+	mCurrentVelocity = mCurrentVelocity - GetActorForwardVector()/5;
+
 	if (mFireSound != nullptr)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, mFireSound, GetActorLocation());
@@ -133,7 +140,7 @@ void AAsteroidShip::Shoot()
 	mCanShoot = false;
 
 	mWorld->GetTimerManager().SetTimer(mTimerHandle_ShootCooldownComplete, this, &AAsteroidShip::ShootCooldownComplete, mShootPeriod);
-		
+
 }
 
 void AAsteroidShip::ShootCooldownComplete()
@@ -156,4 +163,19 @@ void AAsteroidShip::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAxis(mRotateRightBinding);
 	PlayerInputComponent->BindAction(mShootBinding, EInputEvent::IE_Pressed, this, &AAsteroidShip::ToggleShooting);
 	PlayerInputComponent->BindAction(mShootBinding, EInputEvent::IE_Released, this, &AAsteroidShip::ToggleShooting);
+}
+
+void AAsteroidShip::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	for(int i = 0; i < OtherActor->Tags.Num(); i++)
+	{
+		logFStr(OtherActor->Tags[i].ToString());
+	}
+
+	if (OtherActor && OtherActor->ActorHasTag(FName("doesDamage")))
+	{
+		log("On HIT");
+		UGameplayStatics::PlaySoundAtLocation(this, mExplosionSound, GetActorLocation());
+		Destroy();
+	}
 }
