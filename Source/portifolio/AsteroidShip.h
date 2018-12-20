@@ -6,7 +6,6 @@
 #include "GameFramework/Pawn.h"
 #include "AsteroidShip.generated.h"
 
-class ACameraActor;
 
 UCLASS()
 class PORTIFOLIO_API AAsteroidShip : public APawn
@@ -17,7 +16,7 @@ class PORTIFOLIO_API AAsteroidShip : public APawn
 	UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* mShipMeshComponent;
 
-	/* The mesh component */
+	/* The audio component */
 	UPROPERTY(Category = Audio, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UAudioComponent* mThrustAudioComponent;
 
@@ -32,7 +31,7 @@ public:
 
 	// view target
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
-	ACameraActor* mViewTargetCam;
+	class ACameraActor* mViewTargetCam;
 
 	// max speed in cm/s
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
@@ -42,24 +41,34 @@ public:
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	float mRotateSpeed;
 
-	// acceleration applied 
+	// acceleration applied in cm/s²
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	float mAccel;
 
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	float mShootPeriod;
+
 	
-	// Sound to play each time we fire
 	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
 	class USoundBase* mFireSound;
 
-	// Sound to play each time we fire
 	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
 	class USoundBase* mExplosionSound;
+
+
+
+	// Reference UMG Asset in the Editor
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	TSubclassOf<class UAsteroidWidget> mHUDClass;
+
+	// Variable to hold the widget After Creating it.
+	UAsteroidWidget* mpHUD;
+
 
 	static const FName mMoveForwardBinding;
 	static const FName mRotateRightBinding;
 	static const FName mShootBinding;
+	static const FName mQuickTurnBinding;
 
 
 protected:
@@ -80,9 +89,13 @@ public:
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
+	UFUNCTION()
+	void QuickTurn();
+
 	void ShootCooldownComplete();
 	
 	void Shoot();
 
 	void ToggleShooting();
+
 };

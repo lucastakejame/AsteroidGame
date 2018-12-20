@@ -16,11 +16,16 @@
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraActor.h"
 
+#include "AsteroidWidget.h"
+#include "Blueprint/UserWidget.h"
+
 #include "DebugUtils.h"
 
 const FName AAsteroidShip::mMoveForwardBinding("MoveForward");
 const FName AAsteroidShip::mRotateRightBinding("MoveRight");
 const FName AAsteroidShip::mShootBinding("Shoot");
+const FName AAsteroidShip::mQuickTurnBinding("QuickTurn");
+
 
 // Sets default values
 AAsteroidShip::AAsteroidShip()
@@ -68,6 +73,23 @@ void AAsteroidShip::BeginPlay()
 	Super::BeginPlay();
 
 	mWorld = GetWorld();
+
+
+	// Adding HUD to viewport
+	if (mHUDClass)
+	{
+		mpHUD = CreateWidget<UAsteroidWidget>(UGameplayStatics::GetPlayerController(this, 0), mHUDClass, FName("W_HUD"));
+
+		if(mpHUD)
+		{
+			mpHUD->AddToViewport();
+		}
+	}
+	else
+	{
+		log("Missing widget HUD class reference.");
+	}
+
 }
 
 // Called every frame
@@ -130,7 +152,7 @@ void AAsteroidShip::Shoot()
 	);
 
 	// Recoil
-	mCurrentVelocity = mCurrentVelocity - GetActorForwardVector()/5;
+	// mCurrentVelocity = mCurrentVelocity - GetActorForwardVector()/5;
 
 	if (mFireSound != nullptr)
 	{
@@ -153,6 +175,10 @@ void AAsteroidShip::ToggleShooting()
 	mShooting ^= 1;
 }
 
+void AAsteroidShip::QuickTurn()
+{
+	AddActorWorldRotation(FRotator(0, 180, 0));
+}
 // Called to bind functionality to input
 void AAsteroidShip::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -163,18 +189,14 @@ void AAsteroidShip::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAxis(mRotateRightBinding);
 	PlayerInputComponent->BindAction(mShootBinding, EInputEvent::IE_Pressed, this, &AAsteroidShip::ToggleShooting);
 	PlayerInputComponent->BindAction(mShootBinding, EInputEvent::IE_Released, this, &AAsteroidShip::ToggleShooting);
+	PlayerInputComponent->BindAction(mQuickTurnBinding, EInputEvent::IE_Pressed, this, &AAsteroidShip::QuickTurn);
+
 }
 
 void AAsteroidShip::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	for(int i = 0; i < OtherActor->Tags.Num(); i++)
-	{
-		logFStr(OtherActor->Tags[i].ToString());
-	}
-
 	if (OtherActor && OtherActor->ActorHasTag(FName("doesDamage")))
 	{
-		log("On HIT");
 		UGameplayStatics::PlaySoundAtLocation(this, mExplosionSound, GetActorLocation());
 		Destroy();
 	}
