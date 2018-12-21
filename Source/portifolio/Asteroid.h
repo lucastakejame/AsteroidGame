@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "DamageInterface.h"
 #include "Asteroid.generated.h"
 
 class UStaticMeshComponent;
 class UProjectileMovementComponent;
 
 UCLASS()
-class PORTIFOLIO_API AAsteroid : public AActor
+class PORTIFOLIO_API AAsteroid : public AActor, public IDamageInterface
 {
 	GENERATED_BODY()
 	
@@ -31,8 +32,10 @@ public:
 	
 	FVector mInitialVelocity;
 	
-	// Life fraction [0.,1.]
-	float mLifeFraction;
+	// Asteroid Scale
+	float mScale;
+
+	float mHitPoints;
 
 protected:
 	// Called when the game starts or when spawned
@@ -43,11 +46,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void OnConstruction(const FTransform& Transform) override;
-
-	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 	
 	UFUNCTION()
-	void SetupAsteroid(FVector initialVelocity, float lifeFraction);
+	void SetupAsteroid(FVector initialVelocity, float scale, float hitPoints);
 
+	// Damage Interface
+	
+	virtual void ReceiveDamage_Implementation(APawn* instigator, float damage) override;
 };

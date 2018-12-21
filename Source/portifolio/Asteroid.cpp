@@ -22,19 +22,19 @@ AAsteroid::AAsteroid()
 	RootComponent = mAsteroidMeshComponent;
 	mProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 
-	mAsteroidMeshComponent->BodyInstance.SetCollisionProfileName("PhysicsBody");
+	
+	mAsteroidMeshComponent->BodyInstance.SetCollisionProfileName("Target");
 	mAsteroidMeshComponent->SetStaticMesh(asteroidMeshAsset.Object);
 	mAsteroidMeshComponent->SetSimulatePhysics(true);
 	mAsteroidMeshComponent->SetEnableGravity(false);
 	mAsteroidMeshComponent->BodyInstance.bLockZTranslation = true;
 	mAsteroidMeshComponent->SetNotifyRigidBodyCollision(true);
-	mAsteroidMeshComponent->OnComponentHit.AddDynamic(this, &AAsteroid::OnHit);
 
 	mExplosionSound = explosionSoundAsset.Object;
 
 	mProjectileMovementComponent->UpdatedComponent = mAsteroidMeshComponent;
 
-	SetupAsteroid(FVector(10, 0, 0), 1.);
+	SetupAsteroid(FVector(10, 0, 0), 1., 100);
 
 	Tags.Add(FName("doesDamage"));	
 }
@@ -43,15 +43,16 @@ void AAsteroid::OnConstruction(const FTransform& Transform)
 {
 	mProjectileMovementComponent->Velocity = mInitialVelocity;
 
-	mAsteroidMeshComponent->SetWorldScale3D(FVector(mLifeFraction));
+	mAsteroidMeshComponent->SetWorldScale3D(FVector(mScale));
 
 	mAsteroidMeshComponent->SetEnableGravity(false);
 }
 
-void AAsteroid::SetupAsteroid(FVector initialVelocity, float lifeFraction)
+void AAsteroid::SetupAsteroid(FVector initialVelocity, float scale, float hitPoints)
 {
 	mInitialVelocity = initialVelocity;
-	mLifeFraction = lifeFraction;
+	mScale = scale;
+	mHitPoints = hitPoints;
 }
 
 // Called when the game starts or when spawned
@@ -67,13 +68,16 @@ void AAsteroid::Tick(float DeltaTime)
 
 }
 
-void AAsteroid::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AAsteroid::ReceiveDamage_Implementation(APawn* instigator, float damage)
 {
+	mHitPoints -= damage;
 
-	if (OtherActor != NULL && Cast<AportifolioProjectile>(OtherActor))
+	logf(mHitPoints);
+
+	if (mHitPoints <= 0.)
 	{
 
-		if (mLifeFraction > .5f)
+		if (mScale > .6f)
 		{
 			UWorld* world = GetWorld();
 
@@ -84,16 +88,24 @@ void AAsteroid::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimiti
 			AAsteroid* piece0 = world->SpawnActorDeferred<AAsteroid>(thisClass, thisTransform);
 			AAsteroid* piece1 = world->SpawnActorDeferred<AAsteroid>(thisClass, thisTransform);
 
-			piece0->SetupAsteroid(this->mInitialVelocity.RotateAngleAxis(-45, FVector(0, 0, 1)), mLifeFraction*.8);
-			piece1->SetupAsteroid(this->mInitialVelocity.RotateAngleAxis(45, FVector(0, 0, 1)), mLifeFraction*.8);
-		
+			
+
+			piece0->SetupAsteroid(GetVelocity().RotateAngleAxis(-45, FVector(0, 0, 1)), mScale*.8, mHitPoints*.8);
+			piece1->SetupAsteroid(GetVelocity().RotateAngleAxis(45, FVector(0, 0, 1)), mScale*.8, mHitPoints*.8);
+
 			piece0->FinishSpawning(thisTransform);
 			piece1->FinishSpawning(thisTransform);
 		}
-		
+
 		if (mExplosionSound)
 		{
 			UGameplayStatics::PlaySoundAtLocation(this, mExplosionSound, GetActorLocation());
+		}
+		
+		IDamageInterface* dmgAgent = Cast<IDamageInterface>(instigator);
+		if (dmgAgent)
+		{
+			dmgAgent->ReceiveDeathNotification_Implementation(100);
 		}
 
 		Destroy();

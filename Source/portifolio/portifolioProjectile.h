@@ -16,11 +16,15 @@ class AportifolioProjectile : public AActor
 
 	/** Sphere collision component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Projectile, meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* ProjectileMesh;
+	UStaticMeshComponent* mProjectileMesh;
 
 	/** Projectile movement component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	UProjectileMovementComponent* ProjectileMovement;
+	UProjectileMovementComponent* mProjectileMovement;
+
+
+	UPROPERTY()
+	float mDamage;
 
 public:
 	AportifolioProjectile();
@@ -30,8 +34,12 @@ public:
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	/** Returns ProjectileMesh subobject **/
-	FORCEINLINE UStaticMeshComponent* GetProjectileMesh() const { return ProjectileMesh; }
+	FORCEINLINE UStaticMeshComponent* GetProjectileMesh() const { return mProjectileMesh; }
 	/** Returns ProjectileMovement subobject **/
-	FORCEINLINE UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
+	FORCEINLINE UProjectileMovementComponent* GetProjectileMovement() const { return mProjectileMovement; }
+
+	float GetDamage() { return mDamage; }
+	void SetDamage(float damage) { mDamage = damage;  }
+
 };
 

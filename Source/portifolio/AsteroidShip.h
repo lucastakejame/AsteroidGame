@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "DamageInterface.h"
 #include "AsteroidShip.generated.h"
 
-
 UCLASS()
-class PORTIFOLIO_API AAsteroidShip : public APawn
+class PORTIFOLIO_API AAsteroidShip : public APawn, public IDamageInterface
 {
 	GENERATED_BODY()
 		
@@ -24,6 +24,8 @@ class PORTIFOLIO_API AAsteroidShip : public APawn
 	bool mCanShoot;
 	bool mShooting;
 	UWorld* mWorld;
+
+	int32 mScore;
 
 public:
 	// Sets default values for this pawn's properties
@@ -97,5 +99,10 @@ public:
 	void Shoot();
 
 	void ToggleShooting();
+
+	// Damage Interface
+
+
+	virtual void ReceiveDeathNotification_Implementation(int32 points) override;
 
 };

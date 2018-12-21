@@ -143,13 +143,17 @@ void AAsteroidShip::Shoot()
 
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	params.bNoFail = true;
+	//params.bNoFail = true;
+	params.Instigator = this;
 
-	AportifolioProjectile* spawned = mWorld->SpawnActor<AportifolioProjectile>(
+	AportifolioProjectile* projectile = mWorld->SpawnActor<AportifolioProjectile>(
 		this->GetActorLocation()
 		+ this->GetActorForwardVector()*90.f,
 		this->GetActorRotation(), params
 	);
+
+	projectile->SetDamage(50);
+
 
 	// Recoil
 	// mCurrentVelocity = mCurrentVelocity - GetActorForwardVector()/5;
@@ -200,4 +204,11 @@ void AAsteroidShip::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 		UGameplayStatics::PlaySoundAtLocation(this, mExplosionSound, GetActorLocation());
 		Destroy();
 	}
+}
+
+void AAsteroidShip::ReceiveDeathNotification_Implementation(int32 points)
+{
+	mScore += points;
+
+	mpHUD->UpdateScore(mScore);
 }
