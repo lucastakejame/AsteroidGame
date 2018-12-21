@@ -4,6 +4,7 @@
 #include "Classes/Engine/World.h"
 #include "Engine/Public/EngineUtils.h"
 #include "AsteroidShip.h"
+#include "DrawDebugHelpers.h"
 
 #include "DebugUtils.h"
 
@@ -24,7 +25,6 @@ void AScreenLimitManager::BeginPlay()
 	Super::BeginPlay();
 	
 	mWorld = GetWorld();
-
 }
 
 // Called every frame
@@ -32,8 +32,13 @@ void AScreenLimitManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+
 	if (mWorld)
 	{
+		if (mDrawDebugLimits)
+		{
+			DrawDebugBox(mWorld, FVector(0, 0, 0), FVector(mLimitHeight / 2, mLimitWidth / 2, 0), FColor(255, 0, 0, 255), false, 0, 0, 5);
+		}
 		for (TActorIterator<AActor> actrItr(mWorld); actrItr; ++actrItr)
 		{
 			AActor* actor = *actrItr;

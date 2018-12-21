@@ -25,6 +25,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	float mLimitHeight;
 
+	UPROPERTY(EditAnywhere)
+	bool mDrawDebugLimits;
 
 protected:
 	// Called when the game starts or when spawned
