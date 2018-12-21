@@ -65,6 +65,8 @@ AAsteroidShip::AAsteroidShip()
 	mCurrentVelocity = FVector(0, 0, 0);
 	mCanShoot = true;
 	mShooting = false;
+
+	mLifeCount = 3;
 }
 
 // Called when the game starts or when spawned
@@ -83,6 +85,9 @@ void AAsteroidShip::BeginPlay()
 		if(mpHUD)
 		{
 			mpHUD->AddToViewport();
+
+			mpHUD->UpdateScore(mScore);
+			mpHUD->UpdateLifeCount(mLifeCount);
 		}
 	}
 	else

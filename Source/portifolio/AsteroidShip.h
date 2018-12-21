@@ -26,6 +26,7 @@ class PORTIFOLIO_API AAsteroidShip : public APawn, public IDamageInterface
 	UWorld* mWorld;
 
 	int32 mScore;
+	int32 mLifeCount;
 
 public:
 	// Sets default values for this pawn's properties
