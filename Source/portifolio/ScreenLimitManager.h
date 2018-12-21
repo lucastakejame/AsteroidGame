@@ -36,6 +36,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void OnConstruction(const FTransform& transform) override;
 
 	FVector WrapLocation(FVector location, FVector corner0, FVector corner1);
 

@@ -19,12 +19,24 @@ AScreenLimitManager::AScreenLimitManager()
 
 }
 
+void AScreenLimitManager::OnConstruction(const FTransform& transform)
+{
+
+	mWorld = GetWorld();
+	
+	if (mDrawDebugLimits)
+	{
+		DrawDebugBox(mWorld, FVector(0, 0, 0), FVector(mLimitHeight / 2, mLimitWidth / 2, 0), FColor(255, 0, 0, 255), false, 1, 0, 5);
+	}
+}
+
+
 // Called when the game starts or when spawned
 void AScreenLimitManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
 	mWorld = GetWorld();
+
 }
 
 // Called every frame
