@@ -19,9 +19,6 @@ class PORTIFOLIO_API AAsteroid : public AActor, public IDamageInterface
 	UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* mAsteroidMeshComponent;
 
-	UPROPERTY(Category = Movement, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UProjectileMovementComponent* mProjectileMovementComponent;
-
 public:	
 	// Sets default values for this actor's properties
 	AAsteroid();
@@ -31,7 +28,8 @@ public:
 	class USoundBase* mExplosionSound;
 	
 	FVector mInitialVelocity;
-	
+	FVector mInitialAngularVelocity;
+		
 	// Asteroid Scale
 	float mScale;
 
@@ -48,7 +46,7 @@ public:
 	void OnConstruction(const FTransform& Transform) override;
 	
 	UFUNCTION()
-	void SetupAsteroid(FVector initialVelocity, float scale, float hitPoints);
+	void SetupAsteroid(FVector initialVelocity, FVector mInitialAngularVelocity, float scale, float hitPoints);
 
 	// Damage Interface
 	
