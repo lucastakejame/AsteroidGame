@@ -25,6 +25,9 @@ const FName AAsteroidShip::mMoveForwardBinding("MoveForward");
 const FName AAsteroidShip::mRotateRightBinding("MoveRight");
 const FName AAsteroidShip::mShootBinding("Shoot");
 const FName AAsteroidShip::mQuickTurnBinding("QuickTurn");
+const FName AAsteroidShip::mCursorUp("CursorUp");
+const FName AAsteroidShip::mCursorDown("CursorDown");
+const FName AAsteroidShip::mPause("Pause");
 
 
 // Sets default values
@@ -32,6 +35,7 @@ AAsteroidShip::AAsteroidShip()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bTickEvenWhenPaused = true;
 
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
@@ -47,27 +51,48 @@ AAsteroidShip::AAsteroidShip()
 	mThrustAudioComponent->SetupAttachment(mShipMeshComponent);
 
 	mShipMeshComponent->SetEnableGravity(false);
-	mShipMeshComponent->SetStaticMesh(shipMeshAsset.Object);
+	mShipMeshComponent->SetStaticMesh(shipMeshAsset.Object); 
 	mShipMeshComponent->SetCollisionProfileName("BlockAllDynamic");
 	mShipMeshComponent->OnComponentHit.AddDynamic(this, &AAsteroidShip::OnHit);
 	mShipMeshComponent->SetNotifyRigidBodyCollision(true);
 
-	mFireSound = fireSoundAsset.Object;
-	mExplosionSound = explosionSoundAsset.Object;
+	mpFireSound = fireSoundAsset.Object;
+	mpExplosionSound = explosionSoundAsset.Object;
 
 	mThrustAudioComponent->SetSound(thrustSoundAsset.Object);
 
+	ResetShipState();
+
+}
+
+void AAsteroidShip::ResetShipState()
+{
+	FTransform t = FTransform(FRotator(0,0,0), FVector(0, 0, 0), FVector(1, 1, 1));
+
+	SetActorTransform(t);
+	
 	// Default Values
 	mMaxSpeed = 1000;
 	mRotateSpeed = 200;
 	mAccel = 10;
+
 	mShootPeriod = .1;
+	mDeathCooldown = 1.5;
+
 	mCurrentVelocity = FVector(0, 0, 0);
 	mCanShoot = true;
 	mShooting = false;
 
 	mLifeCount = 3;
+	mScore = 0;
+
+	mIsGhost = false;
+	mIsDead = false;
+	
+	SetActorHiddenInGame(false);
+	SetActorEnableCollision(true);
 }
+
 
 // Called when the game starts or when spawned
 void AAsteroidShip::BeginPlay()
@@ -75,33 +100,30 @@ void AAsteroidShip::BeginPlay()
 	Super::BeginPlay();
 
 	mWorld = GetWorld();
+	
+	SetPauseGame(true);
 
+	mThrustAudioComponent->Stop();
 
-	// Adding HUD to viewport
-	if (mHUDClass)
-	{
-		mpHUD = CreateWidget<UAsteroidWidget>(UGameplayStatics::GetPlayerController(this, 0), mHUDClass, FName("W_HUD"));
-
-		if(mpHUD)
-		{
-			mpHUD->AddToViewport();
-
-			mpHUD->UpdateScore(mScore);
-			mpHUD->UpdateLifeCount(mLifeCount);
-		}
-	}
-	else
-	{
-		log("Missing widget HUD class reference.");
-	}
+	mScoreUpdateDelegate.Broadcast(mScore);
+	mLifeCountUpdateDelegate.Broadcast(mLifeCount);
 
 }
 
-// Called every frame
 void AAsteroidShip::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
 
+void AAsteroidShip::UpdateShip(float DeltaTime)
+{
+
+	if (mIsDead)
+	{
+		mThrustAudioComponent->Stop();
+		return;
+	}
+	
 
 	const float accelPerFrame = mAccel*DeltaTime;
 
@@ -110,6 +132,16 @@ void AAsteroidShip::Tick(float DeltaTime)
 
 	this->AddActorWorldRotation(FRotator(0., rotatingValue*mRotateSpeed*DeltaTime, 0.));
 
+	if (mIsGhost && mWorld)
+	{
+		SetActorHiddenInGame(FMath::Fmod(mWorld->GetRealTimeSeconds(), mDeathCooldown / 4.) > mDeathCooldown / 8.);
+	}
+	else
+	{
+		SetActorHiddenInGame(false);
+	}
+
+	// move pressed
 	if (forwardValue > 0.f)
 	{
 		if (!mThrustAudioComponent->IsPlaying())
@@ -148,7 +180,7 @@ void AAsteroidShip::Shoot()
 
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	//params.bNoFail = true;
+	params.bNoFail = true;
 	params.Instigator = this;
 
 	AportifolioProjectile* projectile = mWorld->SpawnActor<AportifolioProjectile>(
@@ -163,14 +195,14 @@ void AAsteroidShip::Shoot()
 	// Recoil
 	// mCurrentVelocity = mCurrentVelocity - GetActorForwardVector()/5;
 
-	if (mFireSound != nullptr)
+	if (mpFireSound != nullptr)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, mFireSound, GetActorLocation());
+		UGameplayStatics::PlaySoundAtLocation(this, mpFireSound, GetActorLocation());
 	}
 
 	mCanShoot = false;
 
-	mWorld->GetTimerManager().SetTimer(mTimerHandle_ShootCooldownComplete, this, &AAsteroidShip::ShootCooldownComplete, mShootPeriod);
+	mWorld->GetTimerManager().SetTimer(mTimerHandle_ShootCooldown, this, &AAsteroidShip::ShootCooldownComplete, mShootPeriod);
 
 }
 
@@ -179,9 +211,17 @@ void AAsteroidShip::ShootCooldownComplete()
 	mCanShoot = true;
 }
 
-void AAsteroidShip::ToggleShooting()
+
+void AAsteroidShip::EnableShooting()
 {
-	mShooting ^= 1;
+	mShooting = true;
+
+	mCursorConfirmDelegate.Broadcast();
+}
+
+void AAsteroidShip::DisableShooting()
+{
+	mShooting = false;
 }
 
 void AAsteroidShip::QuickTurn()
@@ -193,12 +233,19 @@ void AAsteroidShip::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	// set up key bindings
+	// axis key bindings
 	PlayerInputComponent->BindAxis(mMoveForwardBinding);
 	PlayerInputComponent->BindAxis(mRotateRightBinding);
-	PlayerInputComponent->BindAction(mShootBinding, EInputEvent::IE_Pressed, this, &AAsteroidShip::ToggleShooting);
-	PlayerInputComponent->BindAction(mShootBinding, EInputEvent::IE_Released, this, &AAsteroidShip::ToggleShooting);
-	PlayerInputComponent->BindAction(mQuickTurnBinding, EInputEvent::IE_Pressed, this, &AAsteroidShip::QuickTurn);
+	
+	// actions key bindings
+	PlayerInputComponent->BindAction(mShootBinding, EInputEvent::IE_Pressed, this, &AAsteroidShip::EnableShooting).bExecuteWhenPaused = true;
+	PlayerInputComponent->BindAction(mShootBinding, EInputEvent::IE_Released, this, &AAsteroidShip::DisableShooting).bExecuteWhenPaused = true;
+	
+	PlayerInputComponent->BindAction(mQuickTurnBinding, EInputEvent::IE_Pressed, this, &AAsteroidShip::QuickTurn).bExecuteWhenPaused = true;
+	PlayerInputComponent->BindAction(mCursorUp, EInputEvent::IE_Pressed, this, &AAsteroidShip::NotifyUpPress).bExecuteWhenPaused = true;
+	PlayerInputComponent->BindAction(mCursorDown, EInputEvent::IE_Pressed, this, &AAsteroidShip::NotifyDownPress).bExecuteWhenPaused = true;
+
+	PlayerInputComponent->BindAction(mPause, EInputEvent::IE_Pressed, this, &AAsteroidShip::TogglePauseGame).bExecuteWhenPaused = true;
 
 }
 
@@ -206,14 +253,75 @@ void AAsteroidShip::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 {
 	if (OtherActor && OtherActor->ActorHasTag(FName("doesDamage")))
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, mExplosionSound, GetActorLocation());
-		Destroy();
+		UGameplayStatics::PlaySoundAtLocation(this, mpExplosionSound, GetActorLocation());
+		SubtractLife();
 	}
+}
+
+void AAsteroidShip::SubtractLife()
+{
+	mIsDead = true;
+	mLifeCount--;
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+	
+
+	mWorld->GetTimerManager().SetTimer(mTimerHandle_DeathCooldown, this, &AAsteroidShip::DeathCooldownComplete, mDeathCooldown);
+	
+	mLifeCountUpdateDelegate.Broadcast(mLifeCount);
+}
+
+
+void AAsteroidShip::DeathCooldownComplete()
+{
+	if (mLifeCount > 0)
+	{
+		if (!mIsGhost)
+		{
+			mIsDead = false;
+			mIsGhost = true;
+
+			SetActorLocationAndRotation(FVector(0, 0, 0), FRotator(0, 0, 0));
+			mCurrentVelocity = FVector(0, 0, 0);
+		
+			mWorld->GetTimerManager().SetTimer(mTimerHandle_DeathCooldown, this, &AAsteroidShip::DeathCooldownComplete, mDeathCooldown / 2.);
+		}
+		else
+		{
+			mIsGhost = false;
+			SetActorEnableCollision(true);
+		}
+	}
+	else
+	{
+		mNotifyDeathDelegate.Broadcast();
+	}
+	
 }
 
 void AAsteroidShip::ReceiveDeathNotification_Implementation(int32 points)
 {
 	mScore += points;
 
-	mpHUD->UpdateScore(mScore);
+	mScoreUpdateDelegate.Broadcast(mScore);
+}
+
+void AAsteroidShip::NotifyUpPress()
+{
+	mCursorUpDelegate.Broadcast();
+}
+void AAsteroidShip::NotifyDownPress()
+{
+	mCursorDownDelegate.Broadcast();
+}
+
+void AAsteroidShip::TogglePauseGame()
+{
+	mIsPaused = !mIsPaused;
+	SetPauseGame(mIsPaused);
+}
+
+void AAsteroidShip::SetPauseGame_Implementation(bool isPaused)
+{
+	UGameplayStatics::SetGamePaused(this, isPaused);
 }
