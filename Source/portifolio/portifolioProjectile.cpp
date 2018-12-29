@@ -43,7 +43,7 @@ void AportifolioProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 
 		// apply damage to target through damage interface
 		IDamageInterface* dmgTarget = Cast<IDamageInterface>(OtherActor);
-		if (dmgTarget)
+		if (dmgTarget && this->Instigator)
 		{
 			dmgTarget->ReceiveDamage_Implementation(this->Instigator, mDamage);
 		}
