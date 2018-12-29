@@ -190,6 +190,7 @@ void AAsteroidShip::Shoot()
 	);
 
 	projectile->SetDamage(50);
+	projectile->SetLifeSpan(1.);
 
 
 	// Recoil
