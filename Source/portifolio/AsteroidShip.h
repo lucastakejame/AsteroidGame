@@ -27,20 +27,23 @@ class PORTIFOLIO_API AAsteroidShip : public APawn, public IDamageInterface
 	FVector mCurrentVelocity;
 	bool mCanShoot;
 	bool mShooting;
-	bool mIsGhost;
-	bool mIsDead;
 	UWorld* mWorld;
-
-	int32 mScore;
-	int32 mLifeCount;
-
-	
-
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY(Category = ShipState, EditAnywhere, BlueprintReadWrite)
+	int32 mScore;
+
+	UPROPERTY(Category = ShipState, EditAnywhere, BlueprintReadWrite)
+	int32 mLifeCount;
+
+	UPROPERTY(Category = ShipState, EditAnywhere, BlueprintReadWrite)
+	bool mIsGhost;
+
+	UPROPERTY(Category = ShipState, EditAnywhere, BlueprintReadWrite)
+	bool mIsDead;
 
 public:
 
