@@ -89,6 +89,9 @@ void AAsteroidShip::ResetShipState()
 	mIsGhost = false;
 	mIsDead = false;
 	
+	mScoreUpdateDelegate.Broadcast(mScore);
+	mLifeCountUpdateDelegate.Broadcast(mLifeCount);
+
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
 }
@@ -104,10 +107,6 @@ void AAsteroidShip::BeginPlay()
 	SetPauseGame(true);
 
 	mThrustAudioComponent->Stop();
-
-	mScoreUpdateDelegate.Broadcast(mScore);
-	mLifeCountUpdateDelegate.Broadcast(mLifeCount);
-
 }
 
 void AAsteroidShip::Tick(float DeltaTime)
