@@ -30,28 +30,22 @@ AAsteroid::AAsteroid()
 
 	mExplosionSound = explosionSoundAsset.Object;
 
-	SetupAsteroid(FVector(10, 0, 0), FVector(0, 0, 0), 1., 100);
-
 	Tags.Add(FName("doesDamage"));	
 }
 
 void AAsteroid::OnConstruction(const FTransform& Transform)
+{}
+
+void AAsteroid::SetupAsteroid(FAsteroidInfo info)
 {
-	mAsteroidMeshComponent->AddImpulse(mInitialVelocity,NAME_None, true);
+	mInfo = info;
 
-	mAsteroidMeshComponent->AddAngularImpulse(mInitialAngularVelocity, NAME_None, true);
-	
-	mAsteroidMeshComponent->SetWorldScale3D(FVector(mScale));
+	mAsteroidMeshComponent->AddImpulse(info.velocity, NAME_None, true);
 
-	mAsteroidMeshComponent->SetEnableGravity(false);
-}
+	mAsteroidMeshComponent->AddAngularImpulseInRadians(info.angularVelocity, NAME_None, true);
 
-void AAsteroid::SetupAsteroid(FVector initialVelocity, FVector initialAngularVelocity, float scale, float hitPoints)
-{
-	mInitialVelocity = initialVelocity;
-	mInitialAngularVelocity = initialAngularVelocity;
-	mScale = scale;
-	mHitPoints = hitPoints;
+	mAsteroidMeshComponent->SetWorldScale3D(FVector(info.scale));
+
 }
 
 // Called when the game starts or when spawned
@@ -69,51 +63,29 @@ void AAsteroid::Tick(float DeltaTime)
 
 void AAsteroid::ReceiveDamage_Implementation(APawn* instigator, float damage)
 {
-	mHitPoints -= damage;
+	mInfo.hitPoints -= damage;
 
-	logf(mHitPoints);
-
-	if (mHitPoints <= 0.)
+	mInfo.velocity = mAsteroidMeshComponent->GetComponentVelocity();
+	mInfo.angularVelocity = mAsteroidMeshComponent->GetPhysicsAngularVelocity();
+	
+	if (mInfo.hitPoints <= 0.)
 	{
-		if (mScale > .6f)
-		{
-			UWorld* world = GetWorld();
-					   
-			UClass* thisClass = this->GetClass();
-
-			FTransform thisTransform = GetActorTransform();
-
-			AAsteroid* piece0 = world->SpawnActorDeferred<AAsteroid>(thisClass, thisTransform);
-			AAsteroid* piece1 = world->SpawnActorDeferred<AAsteroid>(thisClass, thisTransform);
-
-			FVector currentVel = mAsteroidMeshComponent->GetComponentVelocity();
-			FVector currentAngVel = mAsteroidMeshComponent->GetPhysicsAngularVelocity();
-
-			piece0->SetupAsteroid(currentVel.RotateAngleAxis(-45, FVector(0, 0, 1)), currentAngVel.RotateAngleAxis(-45, FVector(1, 1, 1))/100, mScale*.8, mHitPoints*.8);
-			piece1->SetupAsteroid(currentVel.RotateAngleAxis( 45, FVector(0, 0, 1)), currentAngVel.RotateAngleAxis(-45, FVector(1, 1, 1))/100, mScale*.8, mHitPoints*.8);
-
-			
-
-			piece0->FinishSpawning(thisTransform);
-			piece1->FinishSpawning(thisTransform);
-		}
-
 		if (mExplosionSound)
 		{
 			UGameplayStatics::PlaySoundAtLocation(this, mExplosionSound, GetActorLocation());
 		}
 		
-		if (instigator)
+		if (IsValid(instigator))
 		{
-
 			IDamageInterface* dmgAgent = Cast<IDamageInterface>(instigator);
 			if (dmgAgent)
 			{
+				// giving points to damage instigator
 				dmgAgent->ReceiveDeathNotification_Implementation(100);
 			}
-
 		}
-		Destroy();
+		// Spawner will be in charge of destroying it
+		mNotifyDeathDelegate.Broadcast(this);
 	}
 
 }
