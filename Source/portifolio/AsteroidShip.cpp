@@ -51,7 +51,7 @@ AAsteroidShip::AAsteroidShip()
 	mThrustAudioComponent->SetupAttachment(mShipMeshComponent);
 
 	mShipMeshComponent->SetEnableGravity(false);
-	mShipMeshComponent->SetStaticMesh(shipMeshAsset.Object); 
+	mShipMeshComponent->SetStaticMesh(shipMeshAsset.Object);
 	mShipMeshComponent->SetCollisionProfileName("BlockAllDynamic");
 	mShipMeshComponent->OnComponentHit.AddDynamic(this, &AAsteroidShip::OnHit);
 	mShipMeshComponent->SetNotifyRigidBodyCollision(true);
@@ -63,32 +63,33 @@ AAsteroidShip::AAsteroidShip()
 
 	ResetShipState();
 
+
 }
 
 void AAsteroidShip::ResetShipState()
 {
+	log("RESETING");
 	FTransform t = FTransform(FRotator(0,0,0), FVector(0, 0, 0), FVector(1, 1, 1));
 
 	SetActorTransform(t);
-	
-	// Default Values
-	mMaxSpeed = 1000;
-	mRotateSpeed = 200;
-	mAccel = 10;
 
-	mShootPeriod = .1;
-	mDeathCooldown = 1.5;
+	// Default Values
+	mMaxSpeed = mInitialInfo.mMaxSpeed;
+	mRotateSpeed = mInitialInfo.mRotateSpeed;
+	mAccel = mInitialInfo.mAccel;
+	mShootPeriod = mInitialInfo.mShootPeriod;
+	mDeathCooldown = mInitialInfo.mDeathCooldown;
+
+	mLifeCount = 3;
+	mScore = 0;
 
 	mCurrentVelocity = FVector(0, 0, 0);
 	mCanShoot = true;
 	mShooting = false;
 
-	mLifeCount = 3;
-	mScore = 0;
-
 	mIsGhost = false;
 	mIsDead = false;
-	
+
 	mScoreUpdateDelegate.Broadcast(mScore);
 	mLifeCountUpdateDelegate.Broadcast(mLifeCount);
 
@@ -103,7 +104,7 @@ void AAsteroidShip::BeginPlay()
 	Super::BeginPlay();
 
 	mWorld = GetWorld();
-	
+
 	SetPauseGame(true);
 
 	mThrustAudioComponent->Stop();
@@ -122,7 +123,7 @@ void AAsteroidShip::UpdateShip(float DeltaTime)
 		mThrustAudioComponent->Stop();
 		return;
 	}
-	
+
 
 	const float accelPerFrame = mAccel*DeltaTime;
 
@@ -236,11 +237,11 @@ void AAsteroidShip::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	// axis key bindings
 	PlayerInputComponent->BindAxis(mMoveForwardBinding);
 	PlayerInputComponent->BindAxis(mRotateRightBinding);
-	
+
 	// actions key bindings
 	PlayerInputComponent->BindAction(mShootBinding, EInputEvent::IE_Pressed, this, &AAsteroidShip::EnableShooting).bExecuteWhenPaused = true;
 	PlayerInputComponent->BindAction(mShootBinding, EInputEvent::IE_Released, this, &AAsteroidShip::DisableShooting).bExecuteWhenPaused = true;
-	
+
 	PlayerInputComponent->BindAction(mQuickTurnBinding, EInputEvent::IE_Pressed, this, &AAsteroidShip::QuickTurn).bExecuteWhenPaused = true;
 	PlayerInputComponent->BindAction(mCursorUp, EInputEvent::IE_Pressed, this, &AAsteroidShip::NotifyUpPress).bExecuteWhenPaused = true;
 	PlayerInputComponent->BindAction(mCursorDown, EInputEvent::IE_Pressed, this, &AAsteroidShip::NotifyDownPress).bExecuteWhenPaused = true;
@@ -264,10 +265,10 @@ void AAsteroidShip::SubtractLife()
 	mLifeCount--;
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
-	
+
 
 	mWorld->GetTimerManager().SetTimer(mTimerHandle_DeathCooldown, this, &AAsteroidShip::DeathCooldownComplete, mDeathCooldown);
-	
+
 	mLifeCountUpdateDelegate.Broadcast(mLifeCount);
 }
 
@@ -283,7 +284,7 @@ void AAsteroidShip::DeathCooldownComplete()
 
 			SetActorLocationAndRotation(FVector(0, 0, 0), FRotator(0, 0, 0));
 			mCurrentVelocity = FVector(0, 0, 0);
-		
+
 			mWorld->GetTimerManager().SetTimer(mTimerHandle_DeathCooldown, this, &AAsteroidShip::DeathCooldownComplete, mDeathCooldown / 2.);
 		}
 		else
@@ -296,7 +297,7 @@ void AAsteroidShip::DeathCooldownComplete()
 	{
 		mNotifyDeathDelegate.Broadcast();
 	}
-	
+
 }
 
 void AAsteroidShip::ReceiveDeathNotification_Implementation(int32 points)

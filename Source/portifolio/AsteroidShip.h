@@ -10,6 +10,29 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FNoParamSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOneIntSignature, int, num);
 
+USTRUCT(BlueprintType)
+struct FAsteroidShipInfo
+{
+	GENERATED_BODY()
+	
+	// max speed in cm/s
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+		float mMaxSpeed = 1000;
+
+	// rotation speed in degrees/s
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+		float mRotateSpeed = 200;
+
+	// acceleration applied in cm/s²
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+		float mAccel = 10;
+
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+		float mShootPeriod = .1;
+
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+		float mDeathCooldown = 1.5;
+};
 
 UCLASS(BlueprintType, Blueprintable)
 class PORTIFOLIO_API AAsteroidShip : public APawn, public IDamageInterface
@@ -49,29 +72,27 @@ public:
 
 // members
 
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+	FAsteroidShipInfo mInitialInfo;
+
 	// view target
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	class ACameraActor* mpViewTargetCam;
 
 	// max speed in cm/s
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	float mMaxSpeed;
 
 	// rotation speed in degrees/s
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	float mRotateSpeed;
 
 	// acceleration applied in cm/s²
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	float mAccel;
 	
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	float mShootPeriod;
 
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	float mDeathCooldown;
 
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category = Gameplay, BlueprintReadOnly)
 	bool mIsPaused;
 
 	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
@@ -80,6 +101,7 @@ public:
 	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
 	class USoundBase* mpExplosionSound;
 
+	// input binding names
 	static const FName mMoveForwardBinding;
 	static const FName mRotateRightBinding;
 	static const FName mShootBinding;
