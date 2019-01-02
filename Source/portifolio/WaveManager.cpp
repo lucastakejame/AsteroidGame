@@ -7,6 +7,7 @@
 #include "Containers/Array.h"
 #include "SharedPointer.h"
 #include "Engine/World.h"
+#include "Target.h"
 
 #include "DebugUtils.h"
 
@@ -59,17 +60,15 @@ void AWaveManager::SpawnWave(int n)
 
 			FAsteroidInfo info;
 
-			// cross product so velocity is tangent to radius
+			// cross product so velocity is perpendicular to radius
 			info.velocity = t.GetLocation().GetSafeNormal()^FVector(0, 0, 1)*50.;
 			info.angularVelocity = FVector(1, 0, 0);
 			info.scale = 1.f;
-			info.hitPoints = 100.f;
 
-			piece0->SetupAsteroid(info);
+			piece0->SetupAsteroid(info, 100);
 
 			piece0->mNotifyDeathDelegate.AddDynamic(this, &AWaveManager::DestroyAsteroidAndTryToSpawnSmaller);
 
-		//	piece0->FinishSpawning(t);
 			mAsteroidsArray.Add(piece0);
 		}
 	}
@@ -95,8 +94,10 @@ void AWaveManager::StartWaves()
 	SpawnWave(0);
 }
 
-void AWaveManager::DestroyAsteroidAndTryToSpawnSmaller(AAsteroid* asteroid)
+void AWaveManager::DestroyAsteroidAndTryToSpawnSmaller(ATarget* targ)
 {	
+	AAsteroid* asteroid = Cast<AAsteroid>(targ);
+
 	if (IsValid(asteroid))
 	{
 		if (asteroid->mInfo.scale > .6f)
@@ -108,18 +109,17 @@ void AWaveManager::DestroyAsteroidAndTryToSpawnSmaller(AAsteroid* asteroid)
 			AAsteroid* piece0 = world->SpawnActorDeferred<AAsteroid>(asteroid->GetClass(), thisTransform);
 			AAsteroid* piece1 = world->SpawnActorDeferred<AAsteroid>(asteroid->GetClass(), thisTransform);
 
-			FAsteroidInfo info; asteroid->mInfo;
+			FAsteroidInfo info;
 			info.scale = asteroid->mInfo.scale*.8f;
-			info.hitPoints = asteroid->mInfo.hitPoints*.8f;
 			info.velocity = asteroid->mInfo.velocity.RotateAngleAxis(-45, FVector(0, 0, 1))*1.5;
 			info.angularVelocity = asteroid->mInfo.angularVelocity.RotateAngleAxis(-45, FVector(1, 1, 1)) / 100;
 
-			piece0->SetupAsteroid(info);
+			piece0->SetupAsteroid(info, asteroid->mHitPoints*.8f);
 
 			info.velocity = asteroid->mInfo.velocity.RotateAngleAxis(45, FVector(0, 0, 1))*1.5;
 			info.angularVelocity = asteroid->mInfo.angularVelocity.RotateAngleAxis(45, FVector(1, 1, 1)) / 100;
 
-			piece1->SetupAsteroid(info);
+			piece1->SetupAsteroid(info, asteroid->mHitPoints*.8f);
 
 			piece0->FinishSpawning(thisTransform);
 			piece1->FinishSpawning(thisTransform);

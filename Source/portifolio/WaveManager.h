@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "WaveManager.generated.h"
 
+
 UCLASS()
 class PORTIFOLIO_API AWaveManager : public AActor
 {
@@ -35,5 +36,5 @@ public:
 	void StartWaves();
 
 	UFUNCTION()
-	void DestroyAsteroidAndTryToSpawnSmaller(AAsteroid* asteroid);
+	void DestroyAsteroidAndTryToSpawnSmaller(class ATarget* targ);
 };

@@ -12,39 +12,25 @@
 // Sets default values
 AAsteroid::AAsteroid()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> asteroidMeshAsset(TEXT("/Engine/BasicShapes/Cube.Cube"));
-	static ConstructorHelpers::FObjectFinder<USoundBase> explosionSoundAsset(TEXT("/Game/Asteroids/Sounds/SW_AsteroidExplosion.SW_AsteroidExplosion"));
 
-	mAsteroidMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("AsteroidMesh"));
-	RootComponent = mAsteroidMeshComponent;
-	
-	mAsteroidMeshComponent->BodyInstance.SetCollisionProfileName("Target");
-	mAsteroidMeshComponent->SetStaticMesh(asteroidMeshAsset.Object);
-	mAsteroidMeshComponent->SetSimulatePhysics(true);
-	mAsteroidMeshComponent->SetEnableGravity(false);
-	mAsteroidMeshComponent->BodyInstance.bLockZTranslation = true;
-	mAsteroidMeshComponent->SetNotifyRigidBodyCollision(true);
+	mMeshComponent->SetStaticMesh(asteroidMeshAsset.Object);
 
-	mExplosionSound = explosionSoundAsset.Object;
-
-	Tags.Add(FName("doesDamage"));	
+	mHitPoints = 100;
+	mScoreValue = 100;
 }
 
-void AAsteroid::OnConstruction(const FTransform& Transform)
-{}
-
-void AAsteroid::SetupAsteroid(FAsteroidInfo info)
+void AAsteroid::SetupAsteroid(FAsteroidInfo info, float hitPoints)
 {
+	mHitPoints = hitPoints;
+
 	mInfo = info;
 
-	mAsteroidMeshComponent->AddImpulse(info.velocity, NAME_None, true);
+	mMeshComponent->AddImpulse(info.velocity, NAME_None, true);
 
-	mAsteroidMeshComponent->AddAngularImpulseInRadians(info.angularVelocity, NAME_None, true);
+	mMeshComponent->AddAngularImpulseInRadians(info.angularVelocity, NAME_None, true);
 
-	mAsteroidMeshComponent->SetWorldScale3D(FVector(info.scale));
+	mMeshComponent->SetWorldScale3D(FVector(info.scale));
 
 }
 
@@ -61,32 +47,11 @@ void AAsteroid::Tick(float DeltaTime)
 
 }
 
+
 void AAsteroid::ReceiveDamage_Implementation(APawn* instigator, float damage)
 {
-	mInfo.hitPoints -= damage;
+	mInfo.velocity = mMeshComponent->GetComponentVelocity();
+	mInfo.angularVelocity = mMeshComponent->GetPhysicsAngularVelocityInDegrees();
 
-	mInfo.velocity = mAsteroidMeshComponent->GetComponentVelocity();
-	mInfo.angularVelocity = mAsteroidMeshComponent->GetPhysicsAngularVelocity();
-	
-	if (mInfo.hitPoints <= 0.)
-	{
-		if (mExplosionSound)
-		{
-			UGameplayStatics::PlaySoundAtLocation(this, mExplosionSound, GetActorLocation());
-		}
-		
-		if (IsValid(instigator))
-		{
-			
-			IDamageInterface* dmgAgent = Cast<IDamageInterface>(instigator);
-			if ( instigator->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()) )
-			{
-				// giving points to damage instigator
-				IDamageInterface::Execute_ReceiveDeathNotification(instigator, 100);
-			}
-		}
-		// Spawner will be in charge of destroying it
-		mNotifyDeathDelegate.Broadcast(this);
-	}
-
+	Super::ReceiveDamage_Implementation(instigator, damage);
 }
