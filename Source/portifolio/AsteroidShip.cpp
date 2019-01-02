@@ -306,6 +306,16 @@ void AAsteroidShip::ReceiveDeathNotification_Implementation(int32 points)
 	mScoreUpdateDelegate.Broadcast(mScore);
 }
 
+
+void AAsteroidShip::ReceiveDamage_Implementation(APawn* instigator, float damage)
+{
+	if (instigator != this)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, mpExplosionSound, GetActorLocation());
+		SubtractLife();
+	}
+}
+
 void AAsteroidShip::NotifyUpPress()
 {
 	mCursorUpDelegate.Broadcast();

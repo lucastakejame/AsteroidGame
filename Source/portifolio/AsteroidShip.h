@@ -181,4 +181,6 @@ public:
 	// Damage Interface
 	virtual void ReceiveDeathNotification_Implementation(int32 points) override;
 
+	virtual void ReceiveDamage_Implementation(APawn* instigator, float damage) override;
+
 };
