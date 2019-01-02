@@ -8,7 +8,7 @@
 #include "Engine/StaticMesh.h"
 #include "DamageInterface.h"
 
-AportifolioProjectile::AportifolioProjectile() 
+AportifolioProjectile::AportifolioProjectile()
 {
 	// Static reference to the mesh to use for the projectile
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> ProjectileMeshAsset(TEXT("/Game/TwinStick/Meshes/TwinStickProjectile.TwinStickProjectile"));
@@ -36,16 +36,18 @@ AportifolioProjectile::AportifolioProjectile()
 	mDamage = 1.f;
 }
 
+#include "DebugUtils.h"
+
 void AportifolioProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (OtherActor != NULL)
+	if (IsValid(OtherActor))
 	{
 
 		// apply damage to target through damage interface
-		IDamageInterface* dmgTarget = Cast<IDamageInterface>(OtherActor);
-		if (dmgTarget && this->Instigator)
+		if ( OtherActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()) 
+			&& IsValid(this->Instigator))
 		{
-			dmgTarget->ReceiveDamage_Implementation(this->Instigator, mDamage);
+			IDamageInterface::Execute_ReceiveDamage(OtherActor, this->Instigator, mDamage);
 		}
 		// Only add impulse and destroy projectile if we hit a physics
 		if((OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
@@ -53,6 +55,6 @@ void AportifolioProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 			OtherComp->AddImpulseAtLocation(GetVelocity() * 20.0f, GetActorLocation());
 		}
 	}
-	
+
 	Destroy();
 }

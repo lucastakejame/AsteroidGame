@@ -68,7 +68,6 @@ AAsteroidShip::AAsteroidShip()
 
 void AAsteroidShip::ResetShipState()
 {
-	log("RESETING");
 	FTransform t = FTransform(FRotator(0,0,0), FVector(0, 0, 0), FVector(1, 1, 1));
 
 	SetActorTransform(t);

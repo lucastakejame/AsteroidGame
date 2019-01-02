@@ -77,11 +77,12 @@ void AAsteroid::ReceiveDamage_Implementation(APawn* instigator, float damage)
 		
 		if (IsValid(instigator))
 		{
+			
 			IDamageInterface* dmgAgent = Cast<IDamageInterface>(instigator);
-			if (dmgAgent)
+			if ( instigator->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()) )
 			{
 				// giving points to damage instigator
-				dmgAgent->ReceiveDeathNotification_Implementation(100);
+				IDamageInterface::Execute_ReceiveDeathNotification(instigator, 100);
 			}
 		}
 		// Spawner will be in charge of destroying it
