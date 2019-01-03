@@ -26,12 +26,14 @@ void AAsteroid::SetupAsteroid(FAsteroidInfo info, float hitPoints)
 
 	mInfo = info;
 
-	mMeshComponent->AddImpulse(info.velocity, NAME_None, true);
+	if(IsValid(mMeshComponent))
+	{
+		mMeshComponent->AddImpulse(info.velocity, NAME_None, true);
 
-	mMeshComponent->AddAngularImpulseInRadians(info.angularVelocity, NAME_None, true);
+		mMeshComponent->AddAngularImpulseInDegrees(info.angularVelocity, NAME_None, true);
 
-	mMeshComponent->SetWorldScale3D(FVector(info.scale));
-
+		mMeshComponent->SetWorldScale3D(FVector(info.scale));
+	}
 }
 
 // Called when the game starts or when spawned

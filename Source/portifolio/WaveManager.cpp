@@ -7,13 +7,16 @@
 #include "Containers/Array.h"
 #include "SharedPointer.h"
 #include "Engine/World.h"
+#include "TimerManager.h"
 #include "Target.h"
+#include "EnemyShip.h"
+#include "AsteroidShip.h"
 
 #include "DebugUtils.h"
 
 
 // Sets default values
-AWaveManager::AWaveManager()
+AWaveManager::AWaveManager() : mCurrentWave(0)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -26,11 +29,14 @@ void AWaveManager::BeginPlay()
 {
 	Super::BeginPlay();
 	AAsteroidGameMode* gm = Cast<AAsteroidGameMode>(UGameplayStatics::GetGameMode(this));
-
 	if (gm)
 	{
 		gm->mNotifyGameStartDelegate.AddDynamic(this, &AWaveManager::StartWaves);
 	}
+
+	mpWorldRef = this->GetWorld();
+
+	mpShipRef = Cast<AAsteroidShip>(UGameplayStatics::GetPlayerPawn(this, 0));
 }
 
 // Called every frame
@@ -40,61 +46,143 @@ void AWaveManager::Tick(float DeltaTime)
 
 }
 
-void AWaveManager::SpawnWave(int n)
+void AWaveManager::SpawnWave(int32 n)
 {
-	UWorld* w = this->GetWorld();
-	switch (n)
+
+	if (IsValid(mpWorldRef))
 	{
-	case 0:
-	{
-		for (int i = 0; i < 4; i++)
+		switch (n)
 		{
-			FTransform t = GetActorTransform();
-				
-			t.SetLocation(FVector(
-				(FMath::RandBool() ? 1 : -1)*FMath::Lerp<float, float>(300., 500., FMath::FRand()),
-				(FMath::RandBool() ? 1 : -1)*FMath::Lerp<float, float>(300., 500., FMath::FRand()), 0));
+			case 0:
+			{
+				// This maybe too fast enemy spawning
+				mpWorldRef->GetTimerManager().SetTimer(mTimerHandleEnemySpawn, this, &AWaveManager::TryToSpawnEnemy, 10., true);
 
-			//AAsteroid* piece0 = w->SpawnActorDeferred<AAsteroid>(AAsteroid::StaticClass(), t);
-			AAsteroid* piece0 = w->SpawnActor<AAsteroid>(AAsteroid::StaticClass(), t);
+				// This lambda generates transforms around the origin in a circumference, facing the center 
+				auto distributeAround = [](int idxNow, int idxMax) -> FTransform 
+				{
+					FVector ref = FVector(1,0,0);
+					float angle = float(idxNow)*360.f / idxMax;
+					float radius = 500.f;
+					
+					FVector lv = radius * ref.RotateAngleAxis(angle, FVector(1, 0, 0));
 
-			FAsteroidInfo info;
+					return FTransform(FRotator(0,angle+180.f,0), radius*ref.RotateAngleAxis(angle, FVector(0,0,1)));
+				};
 
-			// cross product so velocity is perpendicular to radius
-			info.velocity = t.GetLocation().GetSafeNormal()^FVector(0, 0, 1)*50.;
-			info.angularVelocity = FVector(1, 0, 0);
-			info.scale = 1.f;
+				SpawnNAsteroids(4, distributeAround);
 
-			piece0->SetupAsteroid(info, 100);
+				for (auto* itAsteroid : mAsteroidsArray)
+				{
+					FAsteroidInfo info;
 
-			piece0->mNotifyDeathDelegate.AddDynamic(this, &AWaveManager::DestroyAsteroidAndTryToSpawnSmaller);
+					// cross product so velocity is perpendicular to radius
+					info.velocity = itAsteroid->GetActorLocation().GetSafeNormal()^FVector(0, 0, 1)*50.;
+					info.angularVelocity = FVector(1, 0, 0);
+					info.scale = .8f;
 
-			mAsteroidsArray.Add(piece0);
+					itAsteroid->SetupAsteroid(info, 100);
+				}
+			}
+			break;
+
+			case 1:
+			{
+
+				FVector shipLoc = (IsValid(mpShipRef)) ? mpShipRef->GetActorLocation() : FVector::ZeroVector;
+
+				// This lambda generates transforms on both player sides
+				auto distributeSides = [shipLoc](int idxNow, int idxMax) -> FTransform
+				{
+					float alpha = float(idxNow) / idxMax;
+					FVector loc = FVector(
+						FMath::Lerp(-500, 500, alpha),
+						(idxNow % 2 == 0)? 800: -800,
+						0);
+
+					loc += shipLoc;
+
+					return FTransform(loc);
+				};
+
+				SpawnNAsteroids(6, distributeSides);
+
+				for (auto* itAsteroid : mAsteroidsArray)
+				{
+					FAsteroidInfo info;
+					
+					// velocity aims player
+					info.velocity = -200.*(itAsteroid->GetActorLocation() - shipLoc).GetSafeNormal();
+					info.angularVelocity = FVector(1, 0, 0);
+					info.scale = 1.f;
+
+					itAsteroid->SetupAsteroid(info, 100);
+				}
+			}
+			break;
+
+			default:
+			break;
 		}
-	}
-		break;
 
-	default:
-		break;
+		mWaveStartDelegate.Broadcast(n);
 	}
+
 }
 
 void AWaveManager::StartWaves()
 {
-	// Destroy remaining asteroids and clean array
-	for(auto* ast : mAsteroidsArray)
+	CleanTargets();
+	SpawnWave(0);
+}
+
+void AWaveManager::TryToSpawnEnemy()
+{
+	// 50% chance of spawning an enemy ship, but it decreases if there is enemies already
+	if (IsValid(mpWorldRef) && FMath::FRand() > .5 + mEnemiesArray.Num()/5. )
 	{
-		if (IsValid(ast))
+		FTransform t;
+		t.SetLocation(FVector(
+			FMath::Lerp(-1000,1000, FMath::FRand()),
+			FMath::Lerp(-1000, 1000, FMath::FRand()),
+			0 ));
+
+		FActorSpawnParameters sp; 
+		sp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		auto* enemy = mpWorldRef->SpawnActor<AEnemyShip>(AEnemyShip::StaticClass(), t, sp);
+
+		enemy->mNotifyDeathDelegate.AddDynamic(this, &AWaveManager::HandleEnemyDestruction);
+
+		mEnemiesArray.Add(enemy);
+	}
+}
+
+
+void AWaveManager::CleanTargets()
+{
+	// Destroy remaining asteroids and clean array
+	for (auto* a : mAsteroidsArray)
+	{
+		if (IsValid(a))
 		{
-			ast->Destroy();
+			a->Destroy();
 		}
 	}
 	mAsteroidsArray.Empty();
 
-	SpawnWave(0);
+	// Destroy remaining asteroids and clean array
+	for (auto* e : mEnemiesArray)
+	{
+		if (IsValid(e))
+		{
+			e->Destroy();
+		}
+	}
+	mEnemiesArray.Empty();
 }
 
-void AWaveManager::DestroyAsteroidAndTryToSpawnSmaller(ATarget* targ)
+void AWaveManager::HandleAsteroidDestruction(ATarget* targ)
 {	
 	AAsteroid* asteroid = Cast<AAsteroid>(targ);
 
@@ -102,37 +190,80 @@ void AWaveManager::DestroyAsteroidAndTryToSpawnSmaller(ATarget* targ)
 	{
 		if (asteroid->mInfo.scale > .6f)
 		{
-			UWorld* world = asteroid->GetWorld();
-
 			FTransform thisTransform = asteroid->GetActorTransform();
 
-			AAsteroid* piece0 = world->SpawnActorDeferred<AAsteroid>(asteroid->GetClass(), thisTransform);
-			AAsteroid* piece1 = world->SpawnActorDeferred<AAsteroid>(asteroid->GetClass(), thisTransform);
+			FActorSpawnParameters sp;
+			sp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+			AAsteroid* piece0 = mpWorldRef->SpawnActor<AAsteroid>(asteroid->GetClass(), thisTransform, sp);
+			AAsteroid* piece1 = mpWorldRef->SpawnActor<AAsteroid>(asteroid->GetClass(), thisTransform, sp);
 
 			FAsteroidInfo info;
 			info.scale = asteroid->mInfo.scale*.8f;
 			info.velocity = asteroid->mInfo.velocity.RotateAngleAxis(-45, FVector(0, 0, 1))*1.5;
 			info.angularVelocity = asteroid->mInfo.angularVelocity.RotateAngleAxis(-45, FVector(1, 1, 1)) / 100;
 
-			piece0->SetupAsteroid(info, asteroid->mHitPoints*.8f);
+			if (IsValid(piece0))
+			{
+				piece0->SetupAsteroid(info, asteroid->mHitPoints*.8f);
+			}
 
 			info.velocity = asteroid->mInfo.velocity.RotateAngleAxis(45, FVector(0, 0, 1))*1.5;
 			info.angularVelocity = asteroid->mInfo.angularVelocity.RotateAngleAxis(45, FVector(1, 1, 1)) / 100;
 
-			piece1->SetupAsteroid(info, asteroid->mHitPoints*.8f);
+			if (IsValid(piece0))
+			{
+				piece1->SetupAsteroid(info, asteroid->mHitPoints*.8f);
+			}
 
-			piece0->FinishSpawning(thisTransform);
-			piece1->FinishSpawning(thisTransform);
-
-			piece0->mNotifyDeathDelegate.AddDynamic(this, &AWaveManager::DestroyAsteroidAndTryToSpawnSmaller);
-			piece1->mNotifyDeathDelegate.AddDynamic(this, &AWaveManager::DestroyAsteroidAndTryToSpawnSmaller);
+			piece0->mNotifyDeathDelegate.AddDynamic(this, &AWaveManager::HandleAsteroidDestruction);
+			piece1->mNotifyDeathDelegate.AddDynamic(this, &AWaveManager::HandleAsteroidDestruction);
 
 			mAsteroidsArray.Add(piece0);
 			mAsteroidsArray.Add(piece1);
 		}
+		asteroid->Destroy();
 
 		mAsteroidsArray.Remove(asteroid);
-
-		asteroid->Destroy();
+		
+		if (mAsteroidsArray.Num() == 0) SpawnWave(++mCurrentWave);
+		
 	}
+}
+
+void AWaveManager::HandleEnemyDestruction(ATarget* targ)
+{
+	AEnemyShip* enemy = Cast<AEnemyShip>(targ);
+	if (IsValid(enemy))
+	{
+		enemy->Destroy();
+		mEnemiesArray.Remove(enemy);
+	}
+}
+
+void AWaveManager::SpawnNAsteroids(int32 n, const std::function<FTransform(int32, int32)> getTransform)
+{
+	FTransform t;
+	t.SetLocation(FVector::ZeroVector);
+	t.SetRotation(FQuat(FRotator::ZeroRotator));
+	t.SetScale3D(FVector(1,1,1));
+
+	
+	FActorSpawnParameters sp;
+	sp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	for (int32 i = 0; i < n; i++)
+	{
+
+		t = getTransform(i, n);
+
+		AAsteroid* a = mpWorldRef->SpawnActor<AAsteroid>(AAsteroid::StaticClass(),t, sp);
+
+		mAsteroidsArray.Add(a);
+
+		a->mNotifyDeathDelegate.AddDynamic(this, &AWaveManager::HandleAsteroidDestruction);
+
+	}
+
+
 }

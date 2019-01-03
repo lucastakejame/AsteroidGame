@@ -3,16 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include <functional>
 #include "GameFramework/Actor.h"
 #include "WaveManager.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWaveStartSignature, int32, waveBeingStarted);
 
 UCLASS()
 class PORTIFOLIO_API AWaveManager : public AActor
 {
 	GENERATED_BODY()
 
-	class AAsteroidShip* mPlayerRef; 
 
 protected:
 	// Called when the game starts or when spawned
@@ -20,8 +21,24 @@ protected:
 
 public:	
 // Members
+	class AAsteroidShip* mpShipRef;
 
 	class TArray<class AAsteroid*> mAsteroidsArray;
+
+	class TArray<class AEnemyShip*> mEnemiesArray;
+
+	UWorld* mpWorldRef;
+
+	FTimerHandle mTimerHandleEnemySpawn;
+
+	int32 mCurrentWave;
+
+	
+
+// Delegates
+
+	UPROPERTY(BluePrintAssignable)
+	FWaveStartSignature mWaveStartDelegate;
 
 // Methods
 	// Sets default values for this actor's properties
@@ -30,11 +47,21 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void SpawnWave(int n);
+	void SpawnWave(int32 n);
 
 	UFUNCTION()
 	void StartWaves();
 
 	UFUNCTION()
-	void DestroyAsteroidAndTryToSpawnSmaller(class ATarget* targ);
+	void TryToSpawnEnemy();
+
+	void CleanTargets();
+	
+	UFUNCTION()
+	void HandleAsteroidDestruction(class ATarget* targ);
+
+	UFUNCTION()
+	void HandleEnemyDestruction(class ATarget* targ);
+
+	void SpawnNAsteroids(int32 n, const std::function<FTransform(int32, int32)> getTransform);
 };
