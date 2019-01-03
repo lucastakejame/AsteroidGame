@@ -45,7 +45,7 @@ void AportifolioProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 
 		// apply damage to target through damage interface
 		if ( OtherActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()) 
-			&& IsValid(this->Instigator))
+			&& IsValid(this->Instigator) && OtherActor != this->Instigator)
 		{
 			IDamageInterface::Execute_ReceiveDamage(OtherActor, this->Instigator, mDamage);
 		}
