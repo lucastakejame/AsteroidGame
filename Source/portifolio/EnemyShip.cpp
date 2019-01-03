@@ -46,6 +46,7 @@ void AEnemyShip::BeginPlay()
 	}
 }
 
+// TODO: Investigate weid movimentation, disappearing from time to time
 void AEnemyShip::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -72,14 +73,15 @@ void AEnemyShip::Shoot()
 
 	if (IsValid(w))
 	{
-		FVector targetLoc = UGameplayStatics::GetPlayerPawn(this, 0)->GetActorLocation()
+		FVector shipLoc = UGameplayStatics::GetPlayerPawn(this, 0)->GetActorLocation();
+		FVector targetLoc = shipLoc
 			+ FVector(FMath::FRand(), FMath::FRand(), FMath::FRand()).Normalize()
 			* FMath::Lerp(-1.f, 1.f, FMath::FRand()) * 50
 			;
 
 		FTransform t = FTransform();
 
-		t.SetLocation(GetActorLocation() + 90 * GetActorForwardVector());
+		t.SetLocation(GetActorLocation() + 90 * (shipLoc - GetActorLocation()).GetSafeNormal());
 		t.SetRotation(FRotationMatrix::MakeFromXZ(targetLoc-t.GetLocation() , FVector(0, 0, 1)).ToQuat());
 
 		FActorSpawnParameters sp = FActorSpawnParameters();
