@@ -15,9 +15,9 @@ AEnemyShip::AEnemyShip() : ATarget()
 	PrimaryActorTick.bTickEvenWhenPaused = false;
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> enemyMeshAsset(TEXT("/Engine/BasicShapes/Cone.Cone"));
-	static ConstructorHelpers::FObjectFinder<UMaterial> enemyMaterialAsset(TEXT("/Engine/MapTemplates/Materials/BasicAsset01.BasicAsset01"));
-
-	mMeshComponent->SetStaticMesh(enemyMeshAsset.Object);
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> enemyMaterialAsset(TEXT("/Engine/MapTemplates/Materials/BasicAsset01.BasicAsset01"));
+	if(enemyMeshAsset.Succeeded()) mMeshComponent->SetStaticMesh(enemyMeshAsset.Object);
+	if(enemyMaterialAsset.Succeeded())  mMeshComponent->SetMaterial(0, enemyMaterialAsset.Object);
 
 	mMeshComponent->BodyInstance.bLockXRotation = true;
 	mMeshComponent->BodyInstance.bLockYRotation = true;
