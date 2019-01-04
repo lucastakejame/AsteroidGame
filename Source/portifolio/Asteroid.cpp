@@ -12,9 +12,26 @@
 // Sets default values
 AAsteroid::AAsteroid()
 {
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> asteroidMeshAsset(TEXT("/Engine/BasicShapes/Cube.Cube"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> asteroidMeshAsset(TEXT("/Game/Asteroids/Art/Asteroids/SM_Asteroid.SM_Asteroid"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> asteroidMesh1Asset(TEXT("/Game/Asteroids/Art/Asteroids/SM_AsteroidFrac0.SM_AsteroidFrac0"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> asteroidMesh2Asset(TEXT("/Game/Asteroids/Art/Asteroids/SM_AsteroidFrac1.SM_AsteroidFrac1"));
 
-	mMeshComponent->SetStaticMesh(asteroidMeshAsset.Object);
+	switch (FMath::Rand()%3)
+	{
+	case 0:
+		mMeshComponent->SetStaticMesh(asteroidMeshAsset.Object);
+	break;
+	case 1:
+		mMeshComponent->SetStaticMesh(asteroidMesh1Asset.Object);
+	break;
+	case 2:
+		mMeshComponent->SetStaticMesh(asteroidMesh2Asset.Object);
+	break;
+	default:
+	break;
+	}
+
+	SetActorRotation(FRotationMatrix(FRotator(FMath::FRand() * 360, FMath::FRand() * 360, FMath::FRand() * 360)).ToQuat());
 
 	mHitPoints = 100;
 	mScoreValue = 100;
