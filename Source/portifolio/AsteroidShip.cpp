@@ -333,5 +333,6 @@ void AAsteroidShip::TogglePauseGame()
 
 void AAsteroidShip::SetPauseGame_Implementation(bool isPaused)
 {
+	mIsPaused = isPaused;
 	UGameplayStatics::SetGamePaused(this, isPaused);
 }
