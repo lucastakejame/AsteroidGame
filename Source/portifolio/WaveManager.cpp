@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "WaveManager.h"
 #include "AsteroidGameMode.h"
@@ -133,7 +133,8 @@ void AWaveManager::SpawnWave(int32 n)
 void AWaveManager::StartWaves()
 {
 	CleanTargets();
-	SpawnWave(0);
+	mCurrentWave = 0;
+	SpawnWave(mCurrentWave);
 }
 
 void AWaveManager::TryToSpawnEnemy()
