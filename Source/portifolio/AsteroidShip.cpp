@@ -251,7 +251,9 @@ void AAsteroidShip::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 void AAsteroidShip::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (OtherActor && OtherActor->ActorHasTag(FName("doesDamage")))
+	if (OtherActor
+		&& OtherActor->ActorHasTag(FName("doesDamage"))
+		&& !mIsDead) // Without this, its possible to receive a second collision before collision is disabled
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, mpExplosionSound, GetActorLocation());
 		SubtractLife();
