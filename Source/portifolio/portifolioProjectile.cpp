@@ -45,16 +45,32 @@ void AportifolioProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 
 		// apply damage to target through damage interface
 		if ( OtherActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()) 
-			&& IsValid(this->Instigator) && OtherActor != this->Instigator)
+			&& IsValid(this->Instigator) 
+			&& OtherActor != this->Instigator) // TODO: Maybe allow this in a debuff?
 		{
+			// Chose execute version of ReceiveDamage because it is also called on blueprint
 			IDamageInterface::Execute_ReceiveDamage(OtherActor, this->Instigator, mDamage);
 		}
+
 		// Only add impulse and destroy projectile if we hit a physics
 		if((OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
 		{
 			OtherComp->AddImpulseAtLocation(GetVelocity() * 20.0f, GetActorLocation());
 		}
+
+
+		AportifolioProjectile* otherProj = Cast<AportifolioProjectile>(OtherActor);
+
+		// we wanna avoid player destroying its own projectiles
+		if (IsValid(otherProj)
+			&& otherProj->Instigator == this->Instigator)
+		{
+			// Do nothing
+		}
+		else
+		{
+			Destroy();
+		}
 	}
 
-	Destroy();
 }

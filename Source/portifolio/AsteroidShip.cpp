@@ -191,6 +191,8 @@ void AAsteroidShip::Shoot()
 	projectile->SetDamage(50);
 	projectile->SetLifeSpan(1.);
 
+	// This makes player projectile ignore his brothers, but still collides with enemy projectiles
+	projectile->GetProjectileMesh()->SetCollisionProfileName("PlayerProjectile");
 
 	// Recoil
 	// mCurrentVelocity = mCurrentVelocity - GetActorForwardVector()/5;
