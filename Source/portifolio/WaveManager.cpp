@@ -32,6 +32,7 @@ void AWaveManager::BeginPlay()
 	if (gm)
 	{
 		gm->mNotifyGameStartDelegate.AddDynamic(this, &AWaveManager::StartWaves);
+		gm->mNotifyGameOverDelegate.AddDynamic(this, &AWaveManager::ResetCurrentWave);
 	}
 
 	mpWorldRef = this->GetWorld();
@@ -48,6 +49,8 @@ void AWaveManager::Tick(float DeltaTime)
 
 void AWaveManager::SpawnWave(int32 n)
 {
+	// current player ship location
+	FVector shipLoc = (IsValid(mpShipRef)) ? mpShipRef->GetActorLocation() : FVector::ZeroVector;
 
 	if (IsValid(mpWorldRef))
 	{
@@ -88,9 +91,6 @@ void AWaveManager::SpawnWave(int32 n)
 
 			case 1:
 			{
-
-				FVector shipLoc = (IsValid(mpShipRef)) ? mpShipRef->GetActorLocation() : FVector::ZeroVector;
-
 				// This lambda generates transforms on both player sides
 				auto distributeSides = [shipLoc](int idxNow, int idxMax) -> FTransform
 				{
@@ -121,8 +121,103 @@ void AWaveManager::SpawnWave(int32 n)
 			}
 			break;
 
+			case 2:
+			{
+
+				auto distributeAroundRings = [shipLoc](int idxNow, int idxMax) -> FTransform
+				{
+					FVector ref = FVector(1, 0, 0);
+					float angle = (idxNow < idxMax / 2.) ? 720.f*float(idxNow) / idxMax: 720.f*float(idxNow) / idxMax + 60.;
+					float radius = (idxNow < idxMax/2.) ? 500.f : 800.f;
+
+					FVector lv = radius * ref.RotateAngleAxis(angle, FVector(1, 0, 0));
+
+					return FTransform(FRotator(0, angle + 180.f, 0), shipLoc+radius*ref.RotateAngleAxis(angle, FVector(0, 0, 1)));
+				};
+
+				SpawnNAsteroids(10, distributeAroundRings);
+
+				for (auto* itAsteroid : mAsteroidsArray)
+				{
+					FAsteroidInfo info;
+
+					// cross product so velocity is perpendicular to radius
+					info.velocity = itAsteroid->GetActorLocation().GetSafeNormal() ^ FVector(0, 0, 1)*50.;
+					info.angularVelocity = FVector(0, 1, 0);
+					info.scale = 1.f;
+
+					itAsteroid->SetupAsteroid(info, 100);
+				}
+			}
+			break;
+
+			case 3:
+			{
+				// This lambda generates transforms on both player sides
+				auto distributeTopBottom = [shipLoc](int idxNow, int idxMax) -> FTransform
+				{
+					float alpha = float(idxNow) / idxMax;
+					FVector loc = FVector(
+						(idxNow % 2 == 0) ? 800 : -800,
+						FMath::Lerp(-1200, 1200, alpha),
+						0);
+
+					loc += shipLoc;
+
+					return FTransform(loc);
+				};
+
+				SpawnNAsteroids(14, distributeTopBottom);
+
+				for (auto* itAsteroid : mAsteroidsArray)
+				{
+					FAsteroidInfo info;
+
+					// velocity aims player
+					info.velocity = -200.*(itAsteroid->GetActorLocation() - shipLoc).GetSafeNormal();
+					info.angularVelocity = FVector(1, 0, 0);
+					info.scale = 1.f;
+
+					itAsteroid->SetupAsteroid(info, 100);
+				}
+			}
+			break;
+
+			case 4:
+			{
+				// This lambda generates transforms on both player sides
+				auto distributeAllOver = [shipLoc](int idxNow, int idxMax) -> FTransform
+				{
+					int numRings = 5;
+					float percent = float(idxNow) / idxMax;
+					FVector ref = FVector(1, 0, 0);
+					float angle = (360.f)*percent;
+					float radius = 300.f + 600.f*(percent);
+
+					FVector lv = radius * ref.RotateAngleAxis(angle, FVector(1, 0, 0));
+
+					return FTransform(FRotator(0, angle + 180.f, 0), shipLoc + radius * ref.RotateAngleAxis(angle, FVector(0, 0, 1)));
+				};
+
+				SpawnNAsteroids(30, distributeAllOver);
+
+				for (auto* itAsteroid : mAsteroidsArray)
+				{
+					FAsteroidInfo info;
+
+					// velocity aims player
+					info.velocity = -100.*(itAsteroid->GetActorLocation() - shipLoc).GetSafeNormal();
+					info.angularVelocity = FVector(1, 0, 0);
+					info.scale = 1.f;
+
+					itAsteroid->SetupAsteroid(info, 100);
+				}
+			}
+			break;
+			
 			default:
 			break;
+
 		}
 
 		mWaveStartDelegate.Broadcast(n);
@@ -133,14 +228,18 @@ void AWaveManager::SpawnWave(int32 n)
 void AWaveManager::StartWaves()
 {
 	CleanTargets();
-	mCurrentWave = 0;
 	SpawnWave(mCurrentWave);
+}
+
+void AWaveManager::ResetCurrentWave()
+{
+	mCurrentWave = 0;
 }
 
 void AWaveManager::TryToSpawnEnemy()
 {
 	// 50% chance of spawning an enemy ship, but it decreases if there is enemies already
-	if (IsValid(mpWorldRef) && FMath::FRand() > .5 + mEnemiesArray.Num()/5. )
+	if (IsValid(mpWorldRef) && FMath::FRand() > .5 + mEnemiesArray.Num()/4. )
 	{
 		FTransform t;
 		t.SetLocation(FVector(
@@ -152,6 +251,8 @@ void AWaveManager::TryToSpawnEnemy()
 		sp.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 		auto* enemy = mpWorldRef->SpawnActor<AEnemyShip>(AEnemyShip::StaticClass(), t, sp);
+
+		enemy->mHitPoints = 50 + mCurrentWave * 25;
 
 		enemy->mNotifyDeathDelegate.AddDynamic(this, &AWaveManager::HandleEnemyDestruction);
 

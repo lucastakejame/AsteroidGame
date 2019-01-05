@@ -31,12 +31,10 @@ public:
 
 	FTimerHandle mTimerHandleEnemySpawn;
 
-	int32 mCurrentWave;
-
-	
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+	int32 mCurrentWave;	
 
 // Delegates
-
 	UPROPERTY(BluePrintAssignable)
 	FWaveStartSignature mWaveStartDelegate;
 
@@ -52,6 +50,9 @@ public:
 	UFUNCTION()
 	void StartWaves();
 
+	UFUNCTION()
+	void ResetCurrentWave();
+	
 	UFUNCTION()
 	void TryToSpawnEnemy();
 

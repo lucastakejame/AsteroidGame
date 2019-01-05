@@ -20,6 +20,8 @@ public:
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatcher")
 	FNotificationSignature mNotifyGameStartDelegate;
 
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatcher")
+	FNotificationSignature mNotifyGameOverDelegate;
 
 
 };
