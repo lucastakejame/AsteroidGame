@@ -28,9 +28,6 @@ struct FAsteroidShipInfo
 		float mAccel = 10;
 
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
-		float mShootPeriod = .1;
-
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 		float mDeathCooldown = 1.5;
 };
 
@@ -48,9 +45,10 @@ class PORTIFOLIO_API AAsteroidShip : public APawn, public IDamageInterface
 	class UAudioComponent* mThrustAudioComponent;
 
 	FVector mCurrentVelocity;
-	bool mCanShoot;
 	bool mShooting;
 	UWorld* mWorld;
+
+	class AGun* mpGun = nullptr;
 
 protected:
 	// Called when the game starts or when spawned
@@ -87,8 +85,7 @@ public:
 
 	// acceleration applied in cm/s²
 	float mAccel;
-	
-	float mShootPeriod;
+
 
 	float mDeathCooldown;
 
@@ -111,7 +108,6 @@ public:
 	static const FName mPause;
 
 	// timers
-	FTimerHandle mTimerHandle_ShootCooldown;
 	FTimerHandle mTimerHandle_DeathCooldown;
 
 
@@ -145,9 +141,12 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	UFUNCTION()
 	void QuickTurn();
@@ -157,8 +156,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ResetShipState();
-
-	void ShootCooldownComplete();
 
 	void SubtractLife();
 

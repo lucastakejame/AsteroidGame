@@ -15,6 +15,7 @@
 #include "GameFramework/PlayerInput.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraActor.h"
+#include "Gun.h"
 
 #include "AsteroidWidget.h"
 #include "Blueprint/UserWidget.h"
@@ -54,15 +55,14 @@ AAsteroidShip::AAsteroidShip()
 	mShipMeshComponent->SetStaticMesh(shipMeshAsset.Object);
 	mShipMeshComponent->SetCollisionProfileName("BlockAllDynamic");
 	mShipMeshComponent->OnComponentHit.AddDynamic(this, &AAsteroidShip::OnHit);
+	mShipMeshComponent->OnComponentBeginOverlap.AddDynamic(this, &AAsteroidShip::OnOverlap);
 	mShipMeshComponent->SetNotifyRigidBodyCollision(true);
 
 	mpFireSound = fireSoundAsset.Object;
 	mpExplosionSound = explosionSoundAsset.Object;
 
 	mThrustAudioComponent->SetSound(thrustSoundAsset.Object);
-
-	ResetShipState();
-
+	
 	Tags.Add(FName("wrappable"));
 
 }
@@ -77,14 +77,12 @@ void AAsteroidShip::ResetShipState()
 	mMaxSpeed = mInitialInfo.mMaxSpeed;
 	mRotateSpeed = mInitialInfo.mRotateSpeed;
 	mAccel = mInitialInfo.mAccel;
-	mShootPeriod = mInitialInfo.mShootPeriod;
 	mDeathCooldown = mInitialInfo.mDeathCooldown;
 
 	mLifeCount = 3;
 	mScore = 0;
 
 	mCurrentVelocity = FVector(0, 0, 0);
-	mCanShoot = true;
 	mShooting = false;
 
 	mIsGhost = false;
@@ -92,6 +90,14 @@ void AAsteroidShip::ResetShipState()
 
 	mScoreUpdateDelegate.Broadcast(mScore);
 	mLifeCountUpdateDelegate.Broadcast(mLifeCount);
+	
+	if (IsValid(mWorld))
+	{
+		if (IsValid(mpGun)) mpGun->Destroy();
+
+		mpGun = mWorld->SpawnActor<AGun>(AGun::StaticClass());
+		mpGun->AttachToPawn(this, FTransform(FRotator(0, 0, 0), FVector(90, 0, 0)));
+	}
 
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
@@ -104,6 +110,8 @@ void AAsteroidShip::BeginPlay()
 	Super::BeginPlay();
 
 	mWorld = GetWorld();
+
+	ResetShipState();
 
 	SetPauseGame(true);
 
@@ -159,7 +167,7 @@ void AAsteroidShip::UpdateShip(float DeltaTime)
 
 	this->AddActorWorldOffset(mCurrentVelocity);
 
-	if (mShooting)
+	if (mShooting && !mIsDead)
 	{
 		Shoot();
 	}
@@ -168,52 +176,8 @@ void AAsteroidShip::UpdateShip(float DeltaTime)
 
 void AAsteroidShip::Shoot()
 {
-	if (!mWorld)
-	{
-		return;
-	}
-
-	if (!mCanShoot)
-	{
-		return;
-	}
-
-	FActorSpawnParameters params;
-	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	params.bNoFail = true;
-	params.Instigator = this;
-
-	AportifolioProjectile* projectile = mWorld->SpawnActor<AportifolioProjectile>(
-		this->GetActorLocation()
-		+ this->GetActorForwardVector()*90.f,
-		this->GetActorRotation(), params
-	);
-
-	projectile->SetDamage(50);
-	projectile->SetLifeSpan(1.);
-
-	// This makes player projectile ignore his brothers, but still collides with enemy projectiles
-	projectile->GetProjectileMesh()->SetCollisionProfileName("PlayerProjectile");
-
-	// Recoil
-	// mCurrentVelocity = mCurrentVelocity - GetActorForwardVector()/5;
-
-	if (mpFireSound != nullptr)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, mpFireSound, GetActorLocation());
-	}
-
-	mCanShoot = false;
-
-	mWorld->GetTimerManager().SetTimer(mTimerHandle_ShootCooldown, this, &AAsteroidShip::ShootCooldownComplete, mShootPeriod);
-
+	if (mpGun) mpGun->Shoot();
 }
-
-void AAsteroidShip::ShootCooldownComplete()
-{
-	mCanShoot = true;
-}
-
 
 void AAsteroidShip::EnableShooting()
 {
@@ -262,6 +226,20 @@ void AAsteroidShip::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 		SubtractLife();
 	}
 }
+
+void AAsteroidShip::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	AGun* gun = Cast<AGun>(OtherActor);
+
+	if (IsValid(gun))
+	{
+		if (IsValid(mpGun)) mpGun->Destroy();
+
+		mpGun = gun;
+		gun->AttachToPawn(this, FTransform(FRotator(0,0,0), FVector(90, 0, 0) ) );
+	}
+}
+
 
 void AAsteroidShip::SubtractLife()
 {

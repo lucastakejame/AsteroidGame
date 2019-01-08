@@ -8,6 +8,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
+#include "Gun.h"
 #include "DebugUtils.h"
 
 AEnemyShip::AEnemyShip() : ATarget()
@@ -24,7 +25,6 @@ AEnemyShip::AEnemyShip() : ATarget()
 	mMeshComponent->BodyInstance.LinearDamping = 1;
 	mMeshComponent->BodyInstance.AngularDamping = 1;
 
-
 	mHitPoints = 150;
 	mScoreValue = 400;
 
@@ -38,15 +38,19 @@ void AEnemyShip::BeginPlay()
 
 	if (IsValid(w))
 	{
-		FTimerHandle disposable;
-		FTimerHandle disposable2;
+		FTimerHandle th;
+		FTimerHandle th2;
 
-		w->GetTimerManager().SetTimer(disposable, this, &AEnemyShip::ChangeMovingDirection, 1.5, true);
-		w->GetTimerManager().SetTimer(disposable2, this, &AEnemyShip::Shoot, 1., true);
+		w->GetTimerManager().SetTimer(th, this, &AEnemyShip::ChangeMovingDirection, 1.5, true);
+		w->GetTimerManager().SetTimer(th2, this, &AEnemyShip::Shoot, 1., true);
+
+		mpGun = w->SpawnActor<AGun>(AGun::StaticClass());
+		mpGun->AttachToPawn(this, FTransform( FRotator(0, 0, 0), FVector(90, 0, 0) ) );
+		mpGun->SetType(EGunType::EnemyGun);
 	}
 }
 
-// TODO: Investigate weid movimentation, disappearing from time to time
+// TODO: Investigate weird movimentation, disappearing from time to time
 void AEnemyShip::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -56,7 +60,7 @@ void AEnemyShip::Tick(float DeltaTime)
 	
 	SetActorRotation(newRot);
 
-	mMeshComponent->AddImpulse(GetActorForwardVector()*2., NAME_None, true);
+	mMeshComponent->AddImpulse(GetActorForwardVector()*3., NAME_None, true);
 }
 
 
@@ -68,31 +72,20 @@ void AEnemyShip::ChangeMovingDirection()
 
 void AEnemyShip::Shoot()
 {
-
-	UWorld* w = GetWorld();
-
-	if (IsValid(w))
+	if (IsValid(mpGun))
 	{
+		// Position gun so it is always between this ship and the target
 		FVector shipLoc = UGameplayStatics::GetPlayerPawn(this, 0)->GetActorLocation();
 		FVector targetLoc = shipLoc
-			+ FVector(FMath::FRand(), FMath::FRand(), FMath::FRand()).Normalize()
-			* FMath::Lerp(-1.f, 1.f, FMath::FRand()) * 50
-			;
+			+ FVector(FMath::FRand()-.5, FMath::FRand()-.5, FMath::FRand()-.5).Normalize()
+			* FMath::Lerp(-1.f, 1.f, FMath::FRand()) * 50;
 
 		FTransform t = FTransform();
 
 		t.SetLocation(GetActorLocation() + 90 * (shipLoc - GetActorLocation()).GetSafeNormal());
 		t.SetRotation(FRotationMatrix::MakeFromXZ(targetLoc-t.GetLocation() , FVector(0, 0, 1)).ToQuat());
 
-		FActorSpawnParameters sp = FActorSpawnParameters();
-		sp.Instigator = this;
-		sp.Owner = this;
-
-		AportifolioProjectile* proj = w->SpawnActor<AportifolioProjectile>(AportifolioProjectile::StaticClass(), t, sp);
-
-		proj->SetLifeSpan(1.);
-		proj->SetDamage(50.);
-		proj->GetProjectileMovement()->MaxSpeed = 1500;
+		mpGun->SetActorTransform(t);
+		mpGun->Shoot();
 	}
-
 }

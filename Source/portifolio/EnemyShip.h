@@ -18,6 +18,8 @@ public:
 // Members
 	FVector mMovingDirection;
 
+	class AGun* mpGun = nullptr;
+
 // Methods
 	AEnemyShip();
 	
