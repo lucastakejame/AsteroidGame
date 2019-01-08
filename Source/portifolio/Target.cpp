@@ -28,6 +28,7 @@ ATarget::ATarget()
 	mMeshComponent->SetNotifyRigidBodyCollision(true);
 
 	Tags.Add(FName("doesDamage"));
+	Tags.Add(FName("wrappable"));
 }
 
 // Called when the game starts or when spawned

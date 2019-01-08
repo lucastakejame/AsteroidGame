@@ -56,7 +56,9 @@ void AScreenLimitManager::Tick(float DeltaTime)
 			AActor* actor = *actrItr;
 
 
-			if (actor && actor->IsRootComponentMovable() )
+			if (IsValid(actor) 
+				&& actor->ActorHasTag(FName("wrappable"))
+				)
 			{
 				FVector oldLocation = actor->GetActorLocation();
 				FVector newLocation = WrapLocation(actor->GetActorLocation(), FVector(-mLimitHeight / 2, -mLimitWidth / 2, 0), FVector(mLimitHeight / 2, mLimitWidth / 2, 0));

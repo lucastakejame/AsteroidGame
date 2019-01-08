@@ -34,6 +34,8 @@ AportifolioProjectile::AportifolioProjectile()
 	InitialLifeSpan = 3.0f;
 
 	mDamage = 1.f;
+
+	Tags.Add(FName("wrappable"));
 }
 
 #include "DebugUtils.h"

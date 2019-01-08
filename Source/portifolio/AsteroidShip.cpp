@@ -63,6 +63,7 @@ AAsteroidShip::AAsteroidShip()
 
 	ResetShipState();
 
+	Tags.Add(FName("wrappable"));
 
 }
 
