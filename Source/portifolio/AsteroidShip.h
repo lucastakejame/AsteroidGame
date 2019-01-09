@@ -157,6 +157,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ResetShipState();
 
+	UFUNCTION(BlueprintCallable)
+	void ResetGun();
+	
 	void SubtractLife();
 
 	void DeathCooldownComplete();

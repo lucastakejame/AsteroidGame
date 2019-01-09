@@ -91,6 +91,14 @@ void AAsteroidShip::ResetShipState()
 	mScoreUpdateDelegate.Broadcast(mScore);
 	mLifeCountUpdateDelegate.Broadcast(mLifeCount);
 	
+	ResetGun();
+	
+	SetActorHiddenInGame(false);
+	SetActorEnableCollision(true);
+}
+
+void AAsteroidShip::ResetGun()
+{
 	if (IsValid(mWorld))
 	{
 		if (IsValid(mpGun)) mpGun->Destroy();
@@ -98,11 +106,7 @@ void AAsteroidShip::ResetShipState()
 		mpGun = mWorld->SpawnActor<AGun>(AGun::StaticClass());
 		mpGun->AttachToPawn(this, FTransform(FRotator(0, 0, 0), FVector(90, 0, 0)));
 	}
-
-	SetActorHiddenInGame(false);
-	SetActorEnableCollision(true);
 }
-
 
 // Called when the game starts or when spawned
 void AAsteroidShip::BeginPlay()
@@ -234,7 +238,6 @@ void AAsteroidShip::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 	if (IsValid(gun))
 	{
 		if (IsValid(mpGun)) mpGun->Destroy();
-
 		mpGun = gun;
 		gun->AttachToPawn(this, FTransform(FRotator(0,0,0), FVector(90, 0, 0) ) );
 	}
@@ -248,6 +251,7 @@ void AAsteroidShip::SubtractLife()
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
 
+	ResetGun();
 
 	mWorld->GetTimerManager().SetTimer(mTimerHandle_DeathCooldown, this, &AAsteroidShip::DeathCooldownComplete, mDeathCooldown);
 
