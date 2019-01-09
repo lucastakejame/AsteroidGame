@@ -8,6 +8,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Pawn.h"
+#include "AsteroidShip.h"
 
 #include "DebugUtils.h"
 
@@ -35,36 +36,30 @@ AGun::AGun()
 	}
 	if (fireSoundAsset.Succeeded()) mpFireSound = fireSoundAsset.Object;
 
-	mpMeshComponent->SetCollisionProfileName("OverlapAll");
-	mpMeshComponent->OnComponentBeginOverlap.AddDynamic(this, &AGun::OnOverlap);
+	mpMeshComponent->SetCollisionProfileName("Collectable");
 	mpMeshComponent->SetGenerateOverlapEvents(true);
 
 	mCanShoot = true;
+	mProjectileCollisionProfile = "TargetProjectile";
 	SetType(EGunType::NormalGun);
 }
 
-
-void AGun::SetType(const EGunType t)
+void AGun::SetType(const EGunType type)
 {
-	mGunType = t;
-	switch (t)
+	mGunType = type;
+	switch (type)
 	{
 		case EGunType::NormalGun:
 		{
 			mShootPeriod = .1;
 		}
 		break;
-		case EGunType::EnemyGun:
+		case EGunType::SlowGun:
 		{
 			mShootPeriod = .5;
 		}
 		break;
 	}
-}
-
-
-void AGun::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
-{
 }
 
 void AGun::AttachToPawn(APawn* pawn, FTransform relativeT)
@@ -76,91 +71,67 @@ void AGun::AttachToPawn(APawn* pawn, FTransform relativeT)
 	AttachToActor(pawn, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	SetActorRelativeTransform(relativeT);
 
+	mProjectileCollisionProfile = (Cast<AAsteroidShip>(pawn)) ? "PlayerProjectile" : "TargetProjectile";
 }
 
 void AGun::Shoot()
 {
-	switch (mGunType)
+	static FActorSpawnParameters sParams;
+	sParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	sParams.Instigator = Cast<APawn>(GetOwner());
+	check(sParams.Instigator != nullptr);
+
+	if (mCanShoot)
 	{
-		case EGunType::NormalGun:
+		switch (mGunType)
 		{
-			if (mCanShoot)
-			{
+		case EGunType::SlowGun:
+		{
+			AportifolioProjectile* projectile = mpWorld->SpawnActor<AportifolioProjectile>(GetActorLocation(), GetActorRotation(), sParams);
 
-				FActorSpawnParameters params;
-				params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-				params.bNoFail = true;
-				params.Instigator = Cast<APawn>(GetOwner());
-
-				check(params.Instigator != nullptr);
-
-				AportifolioProjectile* projectile = mpWorld->SpawnActor<AportifolioProjectile>(
-					this->GetActorLocation(),
-					this->GetActorRotation(), params
-					);
-
-				projectile->SetDamage(50);
-				projectile->SetLifeSpan(1.);
-
-				// This makes player projectile ignore his brothers, but still collides with enemy projectiles
-				projectile->GetProjectileMesh()->SetCollisionProfileName("PlayerProjectile");
-	
-
-				if (mpFireSound != nullptr)
-				{
-					UGameplayStatics::PlaySoundAtLocation(this, mpFireSound, GetActorLocation());
-				}
-
-				mCanShoot = false;
-
-				// It won't be paused so we don't need to keep the reference
-				FTimerHandle th;
-
-				mpWorld->GetTimerManager().SetTimer(th, this, &AGun::EnableShooting, mShootPeriod);
-			}
-		
+			projectile->SetDamage(50);
+			projectile->GetProjectileMovement()->MaxSpeed = 1500;
+			projectile->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
 		}
 		break;
 
-		case EGunType::EnemyGun:
+		case EGunType::NormalGun:
 		{
-			if (mCanShoot)
-			{
+			AportifolioProjectile* projectile = mpWorld->SpawnActor<AportifolioProjectile>(GetActorLocation(), GetActorRotation(), sParams);
 
-				FActorSpawnParameters params;
-				params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-				params.bNoFail = true;
-				params.Instigator = Cast<APawn>(GetOwner());
+			projectile->SetDamage(50);
+			projectile->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
+		}
+		break;
 
-				check(params.Instigator != nullptr);
+		case EGunType::DoubleGun:
+		{
+			AportifolioProjectile* projectile = mpWorld->SpawnActor<AportifolioProjectile>(GetActorLocation() + 15*GetActorRightVector(), GetActorRotation(), sParams);
+			AportifolioProjectile* projectile2 = mpWorld->SpawnActor<AportifolioProjectile>(GetActorLocation() - 15* GetActorRightVector(), GetActorRotation(), sParams);
 
-				AportifolioProjectile* projectile = mpWorld->SpawnActor<AportifolioProjectile>(
-					this->GetActorLocation(),
-					this->GetActorRotation(), params
-					);
+			projectile->SetDamage(40);
+			projectile2->SetDamage(40);
 
-				projectile->SetDamage(50);
-				projectile->SetLifeSpan(1.);
-				projectile->GetProjectileMovement()->MaxSpeed = 1500;
-
-
-				if (mpFireSound != nullptr)
-				{
-					UGameplayStatics::PlaySoundAtLocation(this, mpFireSound, GetActorLocation());
-				}
-
-				mCanShoot = false;
-
-				// It won't be paused so we don't need to keep the reference
-				FTimerHandle th;
-
-				mpWorld->GetTimerManager().SetTimer(th, this, &AGun::EnableShooting, mShootPeriod);
-			}
+			projectile->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
+			projectile2->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
 		}
 		break;
 
 		default:
 		break;
+		}
+
+		if (mpFireSound != nullptr)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, mpFireSound, GetActorLocation());
+		}
+
+		mCanShoot = false;
+
+		// It won't be paused so we don't need to keep the reference
+		FTimerHandle th;
+
+		mpWorld->GetTimerManager().SetTimer(th, this, &AGun::EnableShooting, mShootPeriod);
 	}
 }
 

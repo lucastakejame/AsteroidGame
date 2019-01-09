@@ -41,6 +41,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+
+	virtual void Destroyed() override;
+
 	UFUNCTION()
 	void SetupAsteroid(FAsteroidInfo info, float hitPoints);
 

@@ -17,7 +17,7 @@ AportifolioProjectile::AportifolioProjectile()
 	mProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh0"));
 	mProjectileMesh->SetStaticMesh(ProjectileMeshAsset.Object);
 	mProjectileMesh->SetupAttachment(RootComponent);
-	mProjectileMesh->BodyInstance.SetCollisionProfileName("Projectile");
+	mProjectileMesh->BodyInstance.SetCollisionProfileName("TargetProjectile");
 	mProjectileMesh->OnComponentHit.AddDynamic(this, &AportifolioProjectile::OnHit);		// set up a notification for when this component hits something
 	RootComponent = mProjectileMesh;
 
@@ -31,7 +31,7 @@ AportifolioProjectile::AportifolioProjectile()
 	mProjectileMovement->ProjectileGravityScale = 0.f; // No gravity
 
 	// Die after 3 seconds by default
-	InitialLifeSpan = 3.0f;
+	InitialLifeSpan = 1.0f;
 
 	mDamage = 1.f;
 

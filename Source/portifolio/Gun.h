@@ -9,10 +9,11 @@
 UENUM()
 enum class EGunType : uint8
 {
+	SlowGun,
 	NormalGun,
-	EnemyGun,
 	DoubleGun,
-	FractalGun
+//	FractalGun,
+	EnumSize
 };
 
 UCLASS()
@@ -42,6 +43,8 @@ public:
 
 	float mShootPeriod;
 
+	FName mProjectileCollisionProfile;
+
 	// Sets default values for this actor's properties
 	AGun();
 
@@ -51,11 +54,8 @@ public:
 	UFUNCTION()
 	void AttachToPawn(APawn* pawn, FTransform relativeT);
 
-	UFUNCTION()
-	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
-
-	UFUNCTION()
-	void SetType(const EGunType n);
+	UFUNCTION(BlueprintCallable)
+	void SetType(const EGunType type);
 
 	UFUNCTION()
 	void Shoot();

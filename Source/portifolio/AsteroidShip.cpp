@@ -53,7 +53,7 @@ AAsteroidShip::AAsteroidShip()
 
 	mShipMeshComponent->SetEnableGravity(false);
 	mShipMeshComponent->SetStaticMesh(shipMeshAsset.Object);
-	mShipMeshComponent->SetCollisionProfileName("BlockAllDynamic");
+	mShipMeshComponent->SetCollisionProfileName("Player");
 	mShipMeshComponent->OnComponentHit.AddDynamic(this, &AAsteroidShip::OnHit);
 	mShipMeshComponent->OnComponentBeginOverlap.AddDynamic(this, &AAsteroidShip::OnOverlap);
 	mShipMeshComponent->SetNotifyRigidBodyCollision(true);

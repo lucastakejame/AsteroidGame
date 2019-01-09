@@ -25,6 +25,9 @@ AEnemyShip::AEnemyShip() : ATarget()
 	mMeshComponent->BodyInstance.LinearDamping = 1;
 	mMeshComponent->BodyInstance.AngularDamping = 1;
 
+	// It'll be used to collect guns 
+	mMeshComponent->OnComponentBeginOverlap.AddDynamic(this, &AEnemyShip::OnOverlap);
+
 	mHitPoints = 150;
 	mScoreValue = 400;
 
@@ -46,9 +49,36 @@ void AEnemyShip::BeginPlay()
 
 		mpGun = w->SpawnActor<AGun>(AGun::StaticClass());
 		mpGun->AttachToPawn(this, FTransform( FRotator(0, 0, 0), FVector(90, 0, 0) ) );
-		mpGun->SetType(EGunType::EnemyGun);
+		mpGun->SetType(EGunType::SlowGun);
 	}
 }
+
+
+void AEnemyShip::Destroyed()
+{
+	Super::Destroyed();
+	UWorld* w = GetWorld();
+
+	// Change of spawning gun
+	if (IsValid(w) && FMath::FRand() <= .35)
+	{
+		w->SpawnActor<AGun>(AGun::StaticClass(), GetActorTransform())->SetType((EGunType)(FMath::Rand() % int32(EGunType::EnumSize)));
+	}
+}
+
+void AEnemyShip::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	AGun* gun = Cast<AGun>(OtherActor);
+
+	if (IsValid(gun))
+	{
+		if (IsValid(mpGun)) mpGun->Destroy();
+
+		mpGun = gun;
+		gun->AttachToPawn(this, FTransform(FRotator(0, 0, 0), FVector(90, 0, 0)));
+	}
+}
+
 
 // TODO: Investigate weird movimentation, disappearing from time to time
 void AEnemyShip::Tick(float DeltaTime)
