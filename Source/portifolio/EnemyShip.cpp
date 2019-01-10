@@ -47,7 +47,7 @@ void AEnemyShip::BeginPlay()
 		w->GetTimerManager().SetTimer(th, this, &AEnemyShip::ChangeMovingDirection, 1.5, true);
 		w->GetTimerManager().SetTimer(th2, this, &AEnemyShip::Shoot, 1., true);
 
-		mpGun = w->SpawnActor<AGun>(AGun::StaticClass());
+		mpGun = w->SpawnActor<AGun>(AGun::StaticClass(), GetActorTransform());
 		mpGun->AttachToPawn(this, FTransform( FRotator(0, 0, 0), FVector(90, 0, 0) ) );
 		mpGun->SetType(EGunType::SlowGun);
 	}

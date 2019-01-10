@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "DamageInterface.h"
+#include "Gun.h"
 #include "AsteroidShip.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FNoParamSignature);
@@ -29,6 +30,9 @@ struct FAsteroidShipInfo
 
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 		float mDeathCooldown = 1.5;
+
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+		EGunType mGunType = EGunType::NormalGun;
 };
 
 UCLASS(BlueprintType, Blueprintable)
