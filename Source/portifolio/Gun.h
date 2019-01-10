@@ -12,7 +12,7 @@ enum class EGunType : uint8
 	SlowGun,
 	NormalGun,
 	DoubleGun,
-//	FractalGun,
+	FractalGun,
 	EnumSize
 };
 
@@ -44,6 +44,8 @@ public:
 	float mShootPeriod;
 
 	FName mProjectileCollisionProfile;
+
+	UMaterialInstanceDynamic* mpMID;
 
 	// Sets default values for this actor's properties
 	AGun();

@@ -2,6 +2,7 @@
 
 #include "Gun.h"
 #include "Projectile.h"
+#include "FractalProjectile.h"
 #include "Engine/World.h"
 #include "ConstructorHelpers.h"
 #include "Components/StaticMeshComponent.h"
@@ -9,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Pawn.h"
 #include "AsteroidShip.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 #include "DebugUtils.h"
 
@@ -32,6 +34,14 @@ AGun::AGun()
 		if (materialAsset.Succeeded())
 		{
 			mpMeshComponent->SetMaterial(0, materialAsset.Object);
+
+			mpMID = mpMeshComponent->CreateDynamicMaterialInstance(0, materialAsset.Object);
+/*
+			mpMeshComponent->SetMaterial(0, mpMID);*/
+		}
+		else
+		{
+			mpMID = nullptr;
 		}
 	}
 	if (fireSoundAsset.Succeeded()) mpFireSound = fireSoundAsset.Object;
@@ -49,15 +59,31 @@ void AGun::SetType(const EGunType type)
 	mGunType = type;
 	switch (type)
 	{
-		case EGunType::NormalGun:
-		{
-			mShootPeriod = .1;
-		}
-		break;
 		case EGunType::SlowGun:
 		{
 			mShootPeriod = .5;
+			if (mpMID) mpMID->SetVectorParameterValue("color", FLinearColor(FVector4(.8, .8, .8, 1)));
 		}
+		break;
+		case EGunType::NormalGun:
+		{
+			mShootPeriod = .1;
+			if (mpMID) mpMID->SetVectorParameterValue("color", FLinearColor(FVector4(.2, .2, .8, 1)) );
+		}
+		break;
+		case EGunType::DoubleGun:
+		{
+			mShootPeriod = .1;
+			if (mpMID) mpMID->SetVectorParameterValue("color", FLinearColor(FVector4(.8, .2, .2, 1)));
+		}
+		break;
+		case EGunType::FractalGun:
+		{
+			mShootPeriod = .2;
+			if (mpMID) mpMID->SetVectorParameterValue("color", FLinearColor(FVector4(.2, .8, .2, 1)));
+		}
+		break;
+		default:
 		break;
 	}
 }
@@ -114,6 +140,17 @@ void AGun::Shoot()
 
 			projectile->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
 			projectile2->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
+		}
+		break;
+
+		case EGunType::FractalGun:
+		{
+			AFractalProjectile* projectile = mpWorld->SpawnActor<AFractalProjectile>(GetActorLocation(), GetActorRotation(), sParams);
+
+			int32 numIterations = 3;
+			float lifeSpan = .5f;
+
+			projectile->SetupFractalAsteroid(lifeSpan/(numIterations+1), 100, GetActorForwardVector()*2000.f, numIterations, 2, mProjectileCollisionProfile);
 		}
 		break;
 
