@@ -1,5 +1,7 @@
 #pragma once
 
+#include "DrawDebugHelpers.h"
+
 #define lin() __LINE__
 #define str(t) #t
 #define logFloat(flo) UE_LOG(LogTemp, Warning, TEXT("%s [%d] : %s -> %f"), TEXT(__FUNCTION__), __LINE__, TEXT(str(flo)), flo)
