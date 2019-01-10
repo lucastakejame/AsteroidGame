@@ -46,7 +46,7 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 	{
 
 		// apply damage to target through damage interface
-		if ( OtherActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass())
+		if ( OtherActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()) // this is to also consider blueprints
 			&& IsValid(this->Instigator)
 			&& OtherActor != this->Instigator) // TODO: Maybe allow this in a debuff?
 		{
