@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Asteroid.h"
-#include "portifolioProjectile.h"
+#include "Projectile.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -67,7 +67,7 @@ void AAsteroid::Destroyed()
 	UWorld* w = GetWorld();
 
 	// Change of spawning gun
-	if (IsValid(w) 
+	if (IsValid(w)
 		&& FMath::FRand() <= .15
 		&& mInfo.scale < .6)
 	{

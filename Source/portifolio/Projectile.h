@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "portifolioProjectile.generated.h"
+#include "Projectile.generated.h"
 
 class UProjectileMovementComponent;
 class UStaticMeshComponent;
 
 UCLASS(config=Game)
-class AportifolioProjectile : public AActor
+class AProjectile : public AActor
 {
 	GENERATED_BODY()
 
@@ -27,7 +27,7 @@ class AportifolioProjectile : public AActor
 	float mDamage;
 
 public:
-	AportifolioProjectile();
+	AProjectile();
 
 	/** Function to handle the projectile hitting something */
 	UFUNCTION()

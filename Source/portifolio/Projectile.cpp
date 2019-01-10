@@ -1,6 +1,6 @@
 // Copyright 1998-2018 Epic Games, Inc. All Rights Reserve
 
-#include "portifolioProjectile.h"
+#include "Projectile.h"
 #include "TimerManager.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Components/StaticMeshComponent.h"
@@ -8,7 +8,7 @@
 #include "Engine/StaticMesh.h"
 #include "DamageInterface.h"
 
-AportifolioProjectile::AportifolioProjectile()
+AProjectile::AProjectile()
 {
 	// Static reference to the mesh to use for the projectile
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> ProjectileMeshAsset(TEXT("/Game/TwinStick/Meshes/TwinStickProjectile.TwinStickProjectile"));
@@ -18,7 +18,7 @@ AportifolioProjectile::AportifolioProjectile()
 	mProjectileMesh->SetStaticMesh(ProjectileMeshAsset.Object);
 	mProjectileMesh->SetupAttachment(RootComponent);
 	mProjectileMesh->BodyInstance.SetCollisionProfileName("TargetProjectile");
-	mProjectileMesh->OnComponentHit.AddDynamic(this, &AportifolioProjectile::OnHit);		// set up a notification for when this component hits something
+	mProjectileMesh->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);		// set up a notification for when this component hits something
 	RootComponent = mProjectileMesh;
 
 	// Use a ProjectileMovementComponent to govern this projectile's movement
@@ -40,14 +40,14 @@ AportifolioProjectile::AportifolioProjectile()
 
 #include "DebugUtils.h"
 
-void AportifolioProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (IsValid(OtherActor))
 	{
 
 		// apply damage to target through damage interface
-		if ( OtherActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()) 
-			&& IsValid(this->Instigator) 
+		if ( OtherActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass())
+			&& IsValid(this->Instigator)
 			&& OtherActor != this->Instigator) // TODO: Maybe allow this in a debuff?
 		{
 			// Chose execute version of ReceiveDamage because it is also called on blueprint
@@ -61,7 +61,7 @@ void AportifolioProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 		}
 
 
-		AportifolioProjectile* otherProj = Cast<AportifolioProjectile>(OtherActor);
+		AProjectile* otherProj = Cast<AProjectile>(OtherActor);
 
 		// we wanna avoid player destroying its own projectiles
 		if (IsValid(otherProj)

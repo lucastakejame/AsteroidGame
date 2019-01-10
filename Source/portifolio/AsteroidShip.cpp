@@ -1,8 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "AsteroidShip.h"
-#include "portifolioProjectile.h"
-#include "portifolioPawn.h"
+#include "Projectile.h"
 #include "TimerManager.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "UObject/ConstructorHelpers.h"
@@ -62,7 +61,7 @@ AAsteroidShip::AAsteroidShip()
 	mpExplosionSound = explosionSoundAsset.Object;
 
 	mThrustAudioComponent->SetSound(thrustSoundAsset.Object);
-	
+
 	Tags.Add(FName("wrappable"));
 
 }
@@ -90,9 +89,9 @@ void AAsteroidShip::ResetShipState()
 
 	mScoreUpdateDelegate.Broadcast(mScore);
 	mLifeCountUpdateDelegate.Broadcast(mLifeCount);
-	
+
 	ResetGun();
-	
+
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
 }

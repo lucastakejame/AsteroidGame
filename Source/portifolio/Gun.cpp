@@ -1,7 +1,7 @@
  // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Gun.h"
-#include "portifolioProjectile.h"
+#include "Projectile.h"
 #include "Engine/World.h"
 #include "ConstructorHelpers.h"
 #include "Components/StaticMeshComponent.h"
@@ -67,7 +67,7 @@ void AGun::AttachToPawn(APawn* pawn, FTransform relativeT)
 	SetOwner(pawn);
 	mpMeshComponent->SetHiddenInGame(true);
 	mpMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	
+
 	AttachToActor(pawn, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	SetActorRelativeTransform(relativeT);
 
@@ -87,7 +87,7 @@ void AGun::Shoot()
 		{
 		case EGunType::SlowGun:
 		{
-			AportifolioProjectile* projectile = mpWorld->SpawnActor<AportifolioProjectile>(GetActorLocation(), GetActorRotation(), sParams);
+			AProjectile* projectile = mpWorld->SpawnActor<AProjectile>(GetActorLocation(), GetActorRotation(), sParams);
 
 			projectile->SetDamage(50);
 			projectile->GetProjectileMovement()->MaxSpeed = 1500;
@@ -97,7 +97,7 @@ void AGun::Shoot()
 
 		case EGunType::NormalGun:
 		{
-			AportifolioProjectile* projectile = mpWorld->SpawnActor<AportifolioProjectile>(GetActorLocation(), GetActorRotation(), sParams);
+			AProjectile* projectile = mpWorld->SpawnActor<AProjectile>(GetActorLocation(), GetActorRotation(), sParams);
 
 			projectile->SetDamage(50);
 			projectile->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
@@ -106,8 +106,8 @@ void AGun::Shoot()
 
 		case EGunType::DoubleGun:
 		{
-			AportifolioProjectile* projectile = mpWorld->SpawnActor<AportifolioProjectile>(GetActorLocation() + 15*GetActorRightVector(), GetActorRotation(), sParams);
-			AportifolioProjectile* projectile2 = mpWorld->SpawnActor<AportifolioProjectile>(GetActorLocation() - 15* GetActorRightVector(), GetActorRotation(), sParams);
+			AProjectile* projectile = mpWorld->SpawnActor<AProjectile>(GetActorLocation() + 15*GetActorRightVector(), GetActorRotation(), sParams);
+			AProjectile* projectile2 = mpWorld->SpawnActor<AProjectile>(GetActorLocation() - 15* GetActorRightVector(), GetActorRotation(), sParams);
 
 			projectile->SetDamage(40);
 			projectile2->SetDamage(40);

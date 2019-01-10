@@ -3,7 +3,7 @@
 #include "EnemyShip.h"
 #include "Engine/World.h"
 #include "UObject/ConstructorHelpers.h"
-#include "PortifolioProjectile.h"
+#include "Projectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -25,7 +25,7 @@ AEnemyShip::AEnemyShip() : ATarget()
 	mMeshComponent->BodyInstance.LinearDamping = 1;
 	mMeshComponent->BodyInstance.AngularDamping = 1;
 
-	// It'll be used to collect guns 
+	// It'll be used to collect guns
 	mMeshComponent->OnComponentBeginOverlap.AddDynamic(this, &AEnemyShip::OnOverlap);
 
 	mHitPoints = 150;
@@ -87,7 +87,7 @@ void AEnemyShip::Tick(float DeltaTime)
 
 	FRotator targRot = FRotationMatrix::MakeFromXZ(mMovingDirection, FVector(0, 0, 1)).Rotator();
 	FRotator newRot = FMath::RInterpTo(GetActorRotation(), targRot, DeltaTime, 5.);
-	
+
 	SetActorRotation(newRot);
 
 	mMeshComponent->AddImpulse(GetActorForwardVector()*3., NAME_None, true);
