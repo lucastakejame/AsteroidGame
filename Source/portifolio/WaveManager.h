@@ -25,7 +25,9 @@ public:
 
 	class TArray<class AAsteroid*> mAsteroidsArray;
 
-	class TArray<class AEnemyShip*> mEnemiesArray;
+	TArray<class AEnemyShip*> mEnemiesArray;
+
+	TArray<class ACollectable*> mCollectablesArray;
 
 	UWorld* mpWorldRef;
 
@@ -57,6 +59,8 @@ public:
 	void TryToSpawnEnemy();
 
 	void CleanTargets();
+
+	void CleanCollectables();
 	
 	UFUNCTION()
 	void HandleAsteroidDestruction(class ATarget* targ);

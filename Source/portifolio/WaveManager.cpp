@@ -11,6 +11,8 @@
 #include "Target.h"
 #include "EnemyShip.h"
 #include "AsteroidShip.h"
+#include "Collectable.h"
+#include "Gun.h"
 
 #include "DebugUtils.h"
 
@@ -228,6 +230,7 @@ void AWaveManager::SpawnWave(int32 n)
 void AWaveManager::StartWaves()
 {
 	CleanTargets();
+	CleanCollectables();
 	SpawnWave(mCurrentWave);
 }
 
@@ -284,6 +287,21 @@ void AWaveManager::CleanTargets()
 	mEnemiesArray.Empty();
 }
 
+void AWaveManager::CleanCollectables()
+{
+	// Destroy remaining collectables and clean array
+	for (auto* c : mCollectablesArray)
+	{
+		if (IsValid(c))
+		{
+			c->Destroy();
+		}
+	}
+	mEnemiesArray.Empty();
+}
+
+
+
 void AWaveManager::HandleAsteroidDestruction(ATarget* targ)
 {	
 	AAsteroid* asteroid = Cast<AAsteroid>(targ);
@@ -324,6 +342,18 @@ void AWaveManager::HandleAsteroidDestruction(ATarget* targ)
 			mAsteroidsArray.Add(piece0);
 			mAsteroidsArray.Add(piece1);
 		}
+		else
+		{
+			// Change of spawning a collectable
+			if (IsValid(mpWorldRef) && FMath::FRand() <= .15)
+			{
+				FTransform t = FTransform(asteroid->GetActorRotation(), asteroid->GetActorLocation());
+
+				ACollectable* c = ACollectable::SpawnRandomCollectable(mpWorldRef, t);
+
+				if (IsValid(c)) mCollectablesArray.Add(c);
+			}
+		}
 		asteroid->Destroy();
 
 		mAsteroidsArray.Remove(asteroid);
@@ -340,6 +370,15 @@ void AWaveManager::HandleEnemyDestruction(ATarget* targ)
 	{
 		enemy->Destroy();
 		mEnemiesArray.Remove(enemy);
+
+
+		// Change of spawning a collectable
+		if (IsValid(mpWorldRef) && FMath::FRand() <= .35)
+		{
+			ACollectable* c = ACollectable::SpawnRandomCollectable(mpWorldRef, targ->GetActorTransform());
+
+			if(IsValid(c)) mCollectablesArray.Add(c);
+		}
 	}
 }
 
