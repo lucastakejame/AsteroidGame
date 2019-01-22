@@ -49,20 +49,7 @@ void AEnemyShip::BeginPlay()
 
 		mpGun = w->SpawnActor<AGun>(AGun::StaticClass(), GetActorTransform());
 		mpGun->AttachToPawn(this, FTransform( FRotator(0, 0, 0), FVector(90, 0, 0) ) );
-		mpGun->SetType(EGunType::SlowGun);
-	}
-}
-
-
-void AEnemyShip::Destroyed()
-{
-	Super::Destroyed();
-	UWorld* w = GetWorld();
-
-	// Change of spawning gun
-	if (IsValid(w) && FMath::FRand() <= .35)
-	{
-		w->SpawnActor<AGun>(AGun::StaticClass(), GetActorTransform())->SetType((EGunType)(FMath::Rand() % int32(EGunType::EnumSize)));
+		mpGun->SetGunType(EGunType::SlowGun);
 	}
 }
 

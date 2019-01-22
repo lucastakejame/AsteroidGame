@@ -60,24 +60,6 @@ void AAsteroid::BeginPlay()
 	Super::BeginPlay();
 }
 
-
-void AAsteroid::Destroyed()
-{
-	Super::Destroyed();
-	UWorld* w = GetWorld();
-
-	// Change of spawning gun
-	if (IsValid(w)
-		&& FMath::FRand() <= .15
-		&& mInfo.scale < .6)
-	{
-		FTransform t = FTransform(GetActorRotation(), GetActorLocation());
-		w->SpawnActor<AGun>(AGun::StaticClass(), t)->SetType((EGunType) (FMath::Rand()%int32(EGunType::EnumSize)) );
-
-	}
-}
-
-
 // Called every frame
 void AAsteroid::Tick(float DeltaTime)
 {
