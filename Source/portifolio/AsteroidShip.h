@@ -166,6 +166,8 @@ public:
 	
 	void SubtractLife();
 
+	void AddLife();
+
 	void DeathCooldownComplete();
 	
 	// input triggered methods

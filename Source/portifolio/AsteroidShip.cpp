@@ -15,6 +15,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraActor.h"
 #include "Gun.h"
+#include "Collectable.h"
 
 #include "AsteroidWidget.h"
 #include "Blueprint/UserWidget.h"
@@ -235,11 +236,34 @@ void AAsteroidShip::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 {
 	AGun* gun = Cast<AGun>(OtherActor);
 
+	// TODO: Maybe make a interface to deal with this interaction
+	ACollectable* collec = Cast<ACollectable>(OtherActor);
+
 	if (IsValid(gun))
 	{
 		if (IsValid(mpGun)) mpGun->Destroy();
 		mpGun = gun;
 		gun->AttachToPawn(this, FTransform(FRotator(0,0,0), FVector(90, 0, 0) ) );
+	}
+	else if (IsValid(collec))
+	{
+		switch (collec->GetType())
+		{
+			case ECollectableType::ExtraLife:
+			{
+				AddLife();
+			}
+			break;
+			case ECollectableType::ControlBoost:
+			{
+				mAccel = 2.*mInitialInfo.mAccel;
+				mRotateSpeed = 2.*mInitialInfo.mRotateSpeed;
+			}
+			break;
+			default:
+			break;
+		}
+		collec->Destroy();
 	}
 }
 
@@ -258,6 +282,12 @@ void AAsteroidShip::SubtractLife()
 	mLifeCountUpdateDelegate.Broadcast(mLifeCount);
 }
 
+void AAsteroidShip::AddLife()
+{
+	mLifeCount++;
+
+	mLifeCountUpdateDelegate.Broadcast(mLifeCount);
+}
 
 void AAsteroidShip::DeathCooldownComplete()
 {
