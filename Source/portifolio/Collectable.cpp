@@ -15,7 +15,7 @@ ACollectable::ACollectable()
 	// Fetching Assets
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshAsset(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
 	static ConstructorHelpers::FObjectFinder<USoundBase> collectedSoundAsset(TEXT("/Game/TwinStick/Audio/TwinStickFire.TwinStickFire"));
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> materialAsset(TEXT("/Game/Asteroids/Art/Gun/M_Collectable.M_Collectable"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> materialAsset(TEXT("/Game/Asteroids/Art/Collectable/M_Collectable.M_Collectable"));
 
 	mpMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CollectableMesh"));
 	RootComponent = mpMeshComponent;
@@ -47,17 +47,25 @@ void ACollectable::SetCollectableType(ECollectableType type)
 	{
 		case ECollectableType::ExtraLife:
 		{
-			if (mpMID) mpMID->SetVectorParameterValue("color", FLinearColor(FVector4(.8, .2, .2, 1)));
+			if (mpMID)
+			{
+				mpMID->SetVectorParameterValue("color0", FLinearColor(FVector4(.2, .8, .2, 1)));
+				mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(.8, .8, .8, 1)));
+			}
 		}
 		break;
 		case ECollectableType::ControlBoost:
 		{
-			if (mpMID) mpMID->SetVectorParameterValue("color", FLinearColor(FVector4(.2, .8, .2, 1)));
+			if (mpMID)
+			{
+				mpMID->SetVectorParameterValue("color0", FLinearColor(FVector4(.8, .2, .2, 1)));
+				mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(.8, .8, .8, 1)));
+			}
 		}
 		break;
 		case ECollectableType::Gun:
 		{
-			if (mpMID) mpMID->SetVectorParameterValue("color", FLinearColor(FVector4(.2, .2, .8, 1)));
+			if (mpMID) mpMID->SetVectorParameterValue("color0", FLinearColor(FVector4(1., 0., 0., 1)));
 		}
 		break;
 		default:

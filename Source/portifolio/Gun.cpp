@@ -35,25 +35,25 @@ void AGun::SetGunType(const EGunType type)
 		case EGunType::SlowGun:
 		{
 			mShootPeriod = .5;
-			if (mpMID) mpMID->SetVectorParameterValue("color", FLinearColor(FVector4(.8, .8, .8, 1)));
+			if (mpMID) mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(.8, .8, .8, 1)));
 		}
 		break;
 		case EGunType::NormalGun:
 		{
 			mShootPeriod = .1;
-			if (mpMID) mpMID->SetVectorParameterValue("color", FLinearColor(FVector4(.2, .2, .8, 1)));
+			if (mpMID) mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(.2, .2, .8, 1)));
 		}
 		break;
 		case EGunType::DoubleGun:
 		{
 			mShootPeriod = .1;
-			if (mpMID) mpMID->SetVectorParameterValue("color", FLinearColor(FVector4(.8, .2, .2, 1)));
+			if (mpMID) mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(.8, .8, .2, 1)));
 		}
 		break;
 		case EGunType::FractalGun:
 		{
 			mShootPeriod = .2;
-			if (mpMID) mpMID->SetVectorParameterValue("color", FLinearColor(FVector4(.2, .8, .2, 1)));
+			if (mpMID) mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(.2, .8, .2, 1)));
 		}
 		break;
 		default:
