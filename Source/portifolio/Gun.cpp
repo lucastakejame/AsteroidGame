@@ -17,44 +17,17 @@
 // Sets default values
 AGun::AGun()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
-	// Fetching Assets
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshAsset(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
 	static ConstructorHelpers::FObjectFinder<USoundBase> fireSoundAsset(TEXT("/Game/TwinStick/Audio/TwinStickFire.TwinStickFire"));
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> materialAsset(TEXT("/Game/Asteroids/Art/Gun/M_Gun.M_Gun"));
 
-	mpMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShipMesh"));
-	RootComponent = mpMeshComponent;
-
-	if (meshAsset.Succeeded())
-	{
-		mpMeshComponent->SetStaticMesh(meshAsset.Object);
-		if (materialAsset.Succeeded())
-		{
-			mpMeshComponent->SetMaterial(0, materialAsset.Object);
-
-			mpMID = mpMeshComponent->CreateDynamicMaterialInstance(0, materialAsset.Object);
-/*
-			mpMeshComponent->SetMaterial(0, mpMID);*/
-		}
-		else
-		{
-			mpMID = nullptr;
-		}
-	}
 	if (fireSoundAsset.Succeeded()) mpFireSound = fireSoundAsset.Object;
 
-	mpMeshComponent->SetCollisionProfileName("Collectable");
-	mpMeshComponent->SetGenerateOverlapEvents(true);
-
+	SetCollectableType(ECollectableType::Gun);
 	mCanShoot = true;
 	mProjectileCollisionProfile = "TargetProjectile";
-	SetType(EGunType::NormalGun);
+	SetGunType(EGunType::NormalGun);
 }
 
-void AGun::SetType(const EGunType type)
+void AGun::SetGunType(const EGunType type)
 {
 	mGunType = type;
 	switch (type)
@@ -68,7 +41,7 @@ void AGun::SetType(const EGunType type)
 		case EGunType::NormalGun:
 		{
 			mShootPeriod = .1;
-			if (mpMID) mpMID->SetVectorParameterValue("color", FLinearColor(FVector4(.2, .2, .8, 1)) );
+			if (mpMID) mpMID->SetVectorParameterValue("color", FLinearColor(FVector4(.2, .2, .8, 1)));
 		}
 		break;
 		case EGunType::DoubleGun:
@@ -115,9 +88,10 @@ void AGun::Shoot()
 		{
 			AProjectile* projectile = mpWorld->SpawnActor<AProjectile>(GetActorLocation(), GetActorRotation(), sParams);
 
-			projectile->SetDamage(50);
+			projectile->SetDamage(80);
 			projectile->GetProjectileMovement()->MaxSpeed = 1500;
 			projectile->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
+			projectile->GetProjectileMesh()->SetWorldScale3D(FVector(3.));
 		}
 		break;
 

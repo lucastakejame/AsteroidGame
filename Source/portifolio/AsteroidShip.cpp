@@ -103,7 +103,7 @@ void AAsteroidShip::ResetGun()
 		if (IsValid(mpGun)) mpGun->Destroy();
 
 		mpGun = mWorld->SpawnActor<AGun>(AGun::StaticClass());
-		mpGun->SetType(mInitialInfo.mGunType);
+		mpGun->SetGunType(mInitialInfo.mGunType);
 		mpGun->AttachToPawn(this, FTransform(FRotator(0, 0, 0), FVector(90, 0, 0)));
 	}
 }

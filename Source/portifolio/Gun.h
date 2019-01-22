@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Collectable.h"
 #include "Gun.generated.h"
 
 UENUM()
@@ -17,7 +17,7 @@ enum class EGunType : uint8
 };
 
 UCLASS()
-class PORTIFOLIO_API AGun : public AActor
+class PORTIFOLIO_API AGun : public ACollectable
 {
 	GENERATED_BODY()
 
@@ -28,9 +28,6 @@ protected:
 
 public:
 
-	/* The mesh component */
-	UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* mpMeshComponent;
 
 	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
 	class USoundBase* mpFireSound;
@@ -45,7 +42,6 @@ public:
 
 	FName mProjectileCollisionProfile;
 
-	UMaterialInstanceDynamic* mpMID;
 
 	// Sets default values for this actor's properties
 	AGun();
@@ -57,7 +53,7 @@ public:
 	void AttachToPawn(APawn* pawn, FTransform relativeT);
 
 	UFUNCTION(BlueprintCallable)
-	void SetType(const EGunType type);
+	void SetGunType(const EGunType type);
 
 	UFUNCTION()
 	void Shoot();
