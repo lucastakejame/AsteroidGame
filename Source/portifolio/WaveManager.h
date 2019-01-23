@@ -21,16 +21,22 @@ protected:
 
 public:	
 // Members
+	UPROPERTY()
 	class AAsteroidShip* mpShipRef;
 
-	class TArray<class AAsteroid*> mAsteroidsArray;
+	UPROPERTY()
+	TArray<class AAsteroid*> mAsteroidsArray;
 
+	UPROPERTY()
 	TArray<class AEnemyShip*> mEnemiesArray;
 
+	UPROPERTY()
 	TArray<class ACollectable*> mCollectablesArray;
 
+	UPROPERTY()
 	UWorld* mpWorldRef;
 
+	UPROPERTY()
 	FTimerHandle mTimerHandleEnemySpawn;
 
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
