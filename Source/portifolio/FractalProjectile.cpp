@@ -41,11 +41,12 @@ void AFractalProjectile::Destroyed()
 
 			proj->Instigator = GetInstigator();
 
-			float alpha = float(i)/ mInitialLifeSpan;
+			// Samples 'mNumChilds' values in [0,1]
+			float alpha = (float(i)+.5)/mNumChilds;
 
-			FVector vel = GetProjectileMovement()->Velocity.RotateAngleAxis(FMath::Lerp(-1,1,alpha), FVector(0,0,1));
+			FVector vel = GetProjectileMovement()->Velocity.RotateAngleAxis(FMath::Lerp(-20,20,alpha), FVector(0,0,1));
 
-			proj->SetupFractalAsteroid(mInitialLifeSpan, GetDamage()/mNumChilds, vel, mIterationsLeft-1, mNumChilds, mCollisionProfile);
+			proj->SetupFractalAsteroid(mInitialLifeSpan/1.5f, GetDamage()/mNumChilds, vel, mIterationsLeft-1, mNumChilds, mCollisionProfile);
 		}
 	}
 

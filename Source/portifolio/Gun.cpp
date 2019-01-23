@@ -121,8 +121,8 @@ void AGun::Shoot()
 		{
 			AFractalProjectile* projectile = mpWorld->SpawnActor<AFractalProjectile>(GetActorLocation(), GetActorRotation(), sParams);
 
-			int32 numIterations = 3;
-			float lifeSpan = .5f;
+			int32 numIterations = 4;
+			float lifeSpan = .9f;
 
 			projectile->SetupFractalAsteroid(lifeSpan/(numIterations+1), 100, GetActorForwardVector()*2000.f, numIterations, 2, mProjectileCollisionProfile);
 		}
