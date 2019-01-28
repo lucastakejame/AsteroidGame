@@ -19,6 +19,7 @@ AProjectile::AProjectile()
 	mProjectileMesh->SetupAttachment(RootComponent);
 	mProjectileMesh->BodyInstance.SetCollisionProfileName("TargetProjectile");
 	mProjectileMesh->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);		// set up a notification for when this component hits something
+	mProjectileMesh->SetNotifyRigidBodyCollision(true);
 	RootComponent = mProjectileMesh;
 
 	// Use a ProjectileMovementComponent to govern this projectile's movement
@@ -30,7 +31,9 @@ AProjectile::AProjectile()
 	mProjectileMovement->bShouldBounce = false;
 	mProjectileMovement->ProjectileGravityScale = 0.f; // No gravity
 
-	// Die after 3 seconds by default
+	mProjectileMesh->SetAllUseCCD(true);
+
+	// Die after 1 second by default
 	InitialLifeSpan = 1.0f;
 
 	mDamage = 1.f;
@@ -38,41 +41,28 @@ AProjectile::AProjectile()
 	Tags.Add(FName("wrappable"));
 }
 
-#include "DebugUtils.h"
 
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (IsValid(OtherActor))
 	{
-
 		// apply damage to target through damage interface
 		if ( OtherActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()) // this is to also consider blueprints
 			&& IsValid(this->Instigator)
-			&& OtherActor != this->Instigator) // TODO: Maybe allow this in a debuff?
+			&& OtherActor != this->Instigator)
 		{
 			// Chose execute version of ReceiveDamage because it is also called on blueprint
 			IDamageInterface::Execute_ReceiveDamage(OtherActor, this->Instigator, mDamage);
 		}
 
-		// Only add impulse and destroy projectile if we hit a physics
-		if((OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
+		// Tried to remove this impulse before but don't know how Unreal is handling the collisions
+		// depending on the angle of impact, the projectile would or not change the other component momentum
+		// this way is more reliable.
+		if ((OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
 		{
 			OtherComp->AddImpulseAtLocation(GetVelocity() * 20.0f, GetActorLocation());
 		}
 
-
-		AProjectile* otherProj = Cast<AProjectile>(OtherActor);
-
-		// we wanna avoid player destroying its own projectiles
-		if (IsValid(otherProj)
-			&& otherProj->Instigator == this->Instigator)
-		{
-			// Do nothing
-		}
-		else
-		{
-			Destroy();
-		}
+		Destroy();
 	}
-
 }

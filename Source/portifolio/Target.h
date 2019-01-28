@@ -36,6 +36,9 @@ public:
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	int32 mScoreValue;
 
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+	float mLimitSpeed;
+
 	FNotifyDeathSignature mNotifyDeathDelegate;
 
 // Methods
@@ -46,6 +49,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 // Damage Interface
-
 	virtual void ReceiveDamage_Implementation(APawn* instigator, float damage) override;
+
 };

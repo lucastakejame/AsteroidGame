@@ -25,10 +25,13 @@ ATarget::ATarget()
 	mMeshComponent->SetSimulatePhysics(true);
 	mMeshComponent->SetEnableGravity(false);
 	mMeshComponent->BodyInstance.bLockZTranslation = true;
+
 	mMeshComponent->SetNotifyRigidBodyCollision(true);
 
 	Tags.Add(FName("doesDamage"));
 	Tags.Add(FName("wrappable"));
+
+	mLimitSpeed = 200.;
 }
 
 // Called when the game starts or when spawned
@@ -41,6 +44,9 @@ void ATarget::BeginPlay()
 void ATarget::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// Guarantee limit speed
+	mMeshComponent->SetPhysicsLinearVelocity(mMeshComponent->GetComponentVelocity().GetClampedToMaxSize(mLimitSpeed));
 }
 
 void ATarget::ReceiveDamage_Implementation(APawn* instigator, float damage)
