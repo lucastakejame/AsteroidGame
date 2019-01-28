@@ -41,11 +41,16 @@ AProjectile::AProjectile()
 	Tags.Add(FName("wrappable"));
 }
 
+#include "DebugUtils.h"
 
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	logFStr(this->GetName());
+	logFStr(OtherComp->GetName());
+
 	if (IsValid(OtherActor))
 	{
+
 		// apply damage to target through damage interface
 		if ( OtherActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()) // this is to also consider blueprints
 			&& IsValid(this->Instigator)
@@ -60,9 +65,15 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 		// this way is more reliable.
 		if ((OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
 		{
+			log("Applied impulse.")
 			OtherComp->AddImpulseAtLocation(GetVelocity() * 20.0f, GetActorLocation());
 		}
 
-		Destroy();
+		// With destroy() here, the OtherActor can't execute it's Hit handling for this reference will be invalid
+		SetLifeSpan(0.00001);
+		
+		// Without destroy() this function executes 2 times, so now this solves that
+		mProjectileMesh->SetCollisionProfileName("NoCollision");
+		mProjectileMesh->SetVisibility(false);
 	}
 }
