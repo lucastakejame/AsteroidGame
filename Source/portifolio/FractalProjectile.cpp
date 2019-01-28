@@ -10,6 +10,7 @@
 
 void AFractalProjectile::SetupFractalAsteroid(float lifeSpan, float damage, FVector velocity, int32 iterationsLeft, int32 numChilds, FName collisionProfile)
 {
+
 	mInitialLifeSpan = lifeSpan;
 	SetLifeSpan(lifeSpan);
 
@@ -28,12 +29,13 @@ void AFractalProjectile::SetupFractalAsteroid(float lifeSpan, float damage, FVec
 	mCollisionProfile = collisionProfile;
 	GetProjectileMesh()->SetCollisionProfileName(collisionProfile);
 
+
 }
 
 void AFractalProjectile::Destroyed()
 {
-	// only spawn if lifespan ended, otherwise it will be too strong
-	if (mIterationsLeft > 0 && GetLifeSpan() == 0.)
+	// only spawn it was not hit, otherwise it will be too strong
+	if (mIterationsLeft > 0 && !mWasHit)
 	{
 		for (int i = 0; i < mNumChilds; i++)
 		{
@@ -51,4 +53,10 @@ void AFractalProjectile::Destroyed()
 	}
 
 	Super::Destroyed();
+}
+
+void AFractalProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	mWasHit = true;
+	Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
 }

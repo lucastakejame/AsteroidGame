@@ -45,9 +45,6 @@ AProjectile::AProjectile()
 
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	logFStr(this->GetName());
-	logFStr(OtherComp->GetName());
-
 	if (IsValid(OtherActor))
 	{
 
@@ -65,7 +62,6 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 		// this way is more reliable.
 		if ((OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
 		{
-			log("Applied impulse.")
 			OtherComp->AddImpulseAtLocation(GetVelocity() * 20.0f, GetActorLocation());
 		}
 

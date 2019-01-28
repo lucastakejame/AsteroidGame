@@ -27,9 +27,13 @@ public:
 
 	float mInitialLifeSpan;
 
+	bool mWasHit = false;
+
 // Methods
 
 	void SetupFractalAsteroid(float lifeSpan, float damage, FVector velocity, int32 iterationsLeft, int32 numChilds, FName collisionProfile);
 
 	virtual void Destroyed() override;
+
+	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
 };
