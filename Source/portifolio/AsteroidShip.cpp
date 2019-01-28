@@ -257,7 +257,7 @@ void AAsteroidShip::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 			case ECollectableType::ControlBoost:
 			{
 				mAccel = 2.*mInitialInfo.mAccel;
-				mRotateSpeed = 2.*mInitialInfo.mRotateSpeed;
+				mRotateSpeed = 1.4*mInitialInfo.mRotateSpeed;
 			}
 			break;
 			default:
