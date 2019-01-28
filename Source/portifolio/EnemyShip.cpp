@@ -9,6 +9,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "Gun.h"
+#include "AsteroidShip.h"
 #include "DebugUtils.h"
 
 AEnemyShip::AEnemyShip() : ATarget()
@@ -45,7 +46,7 @@ void AEnemyShip::BeginPlay()
 		FTimerHandle th2;
 
 		w->GetTimerManager().SetTimer(th, this, &AEnemyShip::ChangeMovingDirection, 1.5, true);
-		w->GetTimerManager().SetTimer(th2, this, &AEnemyShip::Shoot, 1., true);
+		w->GetTimerManager().SetTimer(th2, this, &AEnemyShip::Shoot, 1., true, FMath::FRand()*2.);
 
 		mpGun = w->SpawnActor<AGun>(AGun::StaticClass(), GetActorTransform());
 		mpGun->AttachToPawn(this, FTransform( FRotator(0, 0, 0), FVector(90, 0, 0) ) );
@@ -89,10 +90,13 @@ void AEnemyShip::ChangeMovingDirection()
 
 void AEnemyShip::Shoot()
 {
-	if (IsValid(mpGun))
+	AAsteroidShip* ship = Cast<AAsteroidShip>( UGameplayStatics::GetPlayerPawn(this, 0) );
+
+	if (IsValid(mpGun) && IsValid(ship) && ship->CanTakeDamage())
 	{
+
 		// Position gun so it is always between this ship and the target
-		FVector shipLoc = UGameplayStatics::GetPlayerPawn(this, 0)->GetActorLocation();
+		FVector shipLoc = ship->GetActorLocation();
 		FVector targetLoc = shipLoc
 			+ FVector(FMath::FRand()-.5, FMath::FRand()-.5, FMath::FRand()-.5).Normalize()
 			* FMath::Lerp(-1.f, 1.f, FMath::FRand()) * 50;

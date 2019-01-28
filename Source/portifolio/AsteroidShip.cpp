@@ -67,38 +67,38 @@ AAsteroidShip::AAsteroidShip()
 
 }
 
-void AAsteroidShip::ResetShipState()
+void AAsteroidShip::ResetShipToBeginState()
 {
-	FTransform t = FTransform(FRotator(0,0,0), FVector(0, 0, 0), FVector(1, 1, 1));
+	ResetShipToReviveState();
 
-	SetActorTransform(t);
-
-	// Default Values
-	mMaxSpeed = mInitialInfo.mMaxSpeed;
-	mRotateSpeed = mInitialInfo.mRotateSpeed;
-	mAccel = mInitialInfo.mAccel;
-	mDeathCooldown = mInitialInfo.mDeathCooldown;
-
+	mShooting = false;
+	mIsGhost = false;
+	mIsDead = false;
+	
 	mLifeCount = 3;
 	mScore = 0;
 
-	mCurrentVelocity = FVector(0, 0, 0);
-	mShooting = false;
-
-	mIsGhost = false;
-	mIsDead = false;
-
 	mScoreUpdateDelegate.Broadcast(mScore);
 	mLifeCountUpdateDelegate.Broadcast(mLifeCount);
-
-	ResetGun();
 
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
 }
 
-void AAsteroidShip::ResetGun()
+void AAsteroidShip::ResetShipToReviveState()
 {
+	FTransform t = FTransform(FRotator(0, 0, 0), FVector(0, 0, 0), FVector(1, 1, 1));
+
+	SetActorTransform(t);
+
+	mMaxSpeed = mInitialInfo.mMaxSpeed;
+	mRotateSpeed = mInitialInfo.mRotateSpeed;
+	mAccel = mInitialInfo.mAccel;
+	mDeathCooldown = mInitialInfo.mDeathCooldown;
+
+	mCurrentVelocity = FVector(0, 0, 0);
+
+	// Reset to initial gun
 	if (IsValid(mWorld))
 	{
 		if (IsValid(mpGun)) mpGun->Destroy();
@@ -116,7 +116,7 @@ void AAsteroidShip::BeginPlay()
 
 	mWorld = GetWorld();
 
-	ResetShipState();
+	ResetShipToBeginState();
 
 	SetPauseGame(true);
 
@@ -275,8 +275,6 @@ void AAsteroidShip::SubtractLife()
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
 
-	ResetGun();
-
 	mWorld->GetTimerManager().SetTimer(mTimerHandle_DeathCooldown, this, &AAsteroidShip::DeathCooldownComplete, mDeathCooldown);
 
 	mLifeCountUpdateDelegate.Broadcast(mLifeCount);
@@ -298,10 +296,9 @@ void AAsteroidShip::DeathCooldownComplete()
 			mIsDead = false;
 			mIsGhost = true;
 
-			SetActorLocationAndRotation(FVector(0, 0, 0), FRotator(0, 0, 0));
-			mCurrentVelocity = FVector(0, 0, 0);
+			ResetShipToReviveState();
 
-			mWorld->GetTimerManager().SetTimer(mTimerHandle_DeathCooldown, this, &AAsteroidShip::DeathCooldownComplete, mDeathCooldown / 2.);
+			mWorld->GetTimerManager().SetTimer(mTimerHandle_DeathCooldown, this, &AAsteroidShip::DeathCooldownComplete, mDeathCooldown);
 		}
 		else
 		{
@@ -314,6 +311,11 @@ void AAsteroidShip::DeathCooldownComplete()
 		mNotifyDeathDelegate.Broadcast();
 	}
 
+}
+
+bool AAsteroidShip::CanTakeDamage()
+{
+	return !mIsDead && !mIsGhost;
 }
 
 void AAsteroidShip::ReceiveDeathNotification_Implementation(int32 points)

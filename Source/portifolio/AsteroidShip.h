@@ -158,17 +158,21 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UpdateShip(float DeltaTime);
 
+	// Setup ship for the game beginning
 	UFUNCTION(BlueprintCallable)
-	void ResetShipState();
+	void ResetShipToBeginState();
 
+	// Setup position, gun and stats to initial conditions.
 	UFUNCTION(BlueprintCallable)
-	void ResetGun();
+	void ResetShipToReviveState();
 	
 	void SubtractLife();
 
 	void AddLife();
 
 	void DeathCooldownComplete();
+	
+	bool CanTakeDamage();
 	
 	// input triggered methods
 	void Shoot();
