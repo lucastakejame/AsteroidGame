@@ -16,28 +16,22 @@ ATarget::ATarget()
 	PrimaryActorTick.bCanEverTick = true;
 
 	static ConstructorHelpers::FObjectFinder<USoundBase> explosionSoundAsset(TEXT("/Game/Asteroids/Sounds/SW_AsteroidExplosion.SW_AsteroidExplosion"));
-	mExplosionSound = explosionSoundAsset.Object;
+	mpSoundExplosion = explosionSoundAsset.Object;
 
-	mMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TargetMesh"));
-	RootComponent = mMeshComponent;
+	mpMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TargetMesh"));
+	RootComponent = mpMeshComponent;
 
-	mMeshComponent->BodyInstance.SetCollisionProfileName("Target");
-	mMeshComponent->SetSimulatePhysics(true);
-	mMeshComponent->SetEnableGravity(false);
-	mMeshComponent->BodyInstance.bLockZTranslation = true;
+	mpMeshComponent->BodyInstance.SetCollisionProfileName("Target");
+	mpMeshComponent->SetSimulatePhysics(true);
+	mpMeshComponent->SetEnableGravity(false);
+	mpMeshComponent->BodyInstance.bLockZTranslation = true;
 
-	mMeshComponent->SetNotifyRigidBodyCollision(true);
+	mpMeshComponent->SetNotifyRigidBodyCollision(true);
 
 	Tags.Add(FName("doesDamage"));
 	Tags.Add(FName("wrappable"));
 
 	mLimitSpeed = 200.;
-}
-
-// Called when the game starts or when spawned
-void ATarget::BeginPlay()
-{
-	Super::BeginPlay();
 }
 
 // Called every frame
@@ -46,7 +40,7 @@ void ATarget::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// Guarantee limit speed
-	mMeshComponent->SetPhysicsLinearVelocity(mMeshComponent->GetComponentVelocity().GetClampedToMaxSize(mLimitSpeed));
+	mpMeshComponent->SetPhysicsLinearVelocity(mpMeshComponent->GetComponentVelocity().GetClampedToMaxSize(mLimitSpeed));
 }
 
 void ATarget::ReceiveDamage_Implementation(APawn* instigator, float damage)
@@ -55,21 +49,22 @@ void ATarget::ReceiveDamage_Implementation(APawn* instigator, float damage)
 
 	if (mHitPoints <= 0.)
 	{
-		if (IsValid(mExplosionSound))
+		if (IsValid(mpSoundExplosion))
 		{
-			UGameplayStatics::PlaySoundAtLocation(this, mExplosionSound, GetActorLocation());
+			UGameplayStatics::PlaySoundAtLocation(this, mpSoundExplosion, GetActorLocation());
 		}
 
 		if (IsValid(instigator))
 		{
 			if ( instigator->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()) )
 			{
+				// The Execute_ prefix includes blueprint versions of this function
 				// giving points to damage instigator
 				IDamageInterface::Execute_ReceiveDeathNotification(instigator, mScoreValue);
 			}
 		}
 		// Spawner will be in charge of destroying it
-		mNotifyDeathDelegate.Broadcast(this);
+		mOnDeath.Broadcast(this);
 	}
 
 }

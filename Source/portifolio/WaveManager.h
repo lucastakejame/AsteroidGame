@@ -21,6 +21,7 @@ protected:
 
 public:	
 // Members
+	// Player ship reference
 	UPROPERTY()
 	class AAsteroidShip* mpShipRef;
 
@@ -33,6 +34,12 @@ public:
 	UPROPERTY()
 	TArray<class ACollectable*> mCollectablesArray;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AAsteroid> mpAsteroidClass;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AEnemyShip> mpEnemyClass;
+	
 	UPROPERTY()
 	UWorld* mpWorldRef;
 
@@ -44,14 +51,11 @@ public:
 
 // Delegates
 	UPROPERTY(BluePrintAssignable)
-	FWaveStartSignature mWaveStartDelegate;
+	FWaveStartSignature mOnWaveStarting;
 
 // Methods
 	// Sets default values for this actor's properties
 	AWaveManager();
-
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 	void SpawnWave(int32 n);
 
@@ -73,6 +77,8 @@ public:
 
 	UFUNCTION()
 	void HandleEnemyDestruction(class ATarget* targ);
+
+	AAsteroid* SpawnAsteroid(const FTransform& t);
 
 	void SpawnNAsteroids(int32 n, const std::function<FTransform(int32, int32)> getTransform);
 };

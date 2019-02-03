@@ -13,65 +13,47 @@
 // Sets default values
 AAsteroid::AAsteroid()
 {
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> asteroidMeshAsset(TEXT("/Game/Asteroids/Art/Asteroids/SM_Asteroid.SM_Asteroid"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> asteroidMesh1Asset(TEXT("/Game/Asteroids/Art/Asteroids/SM_AsteroidFrac0.SM_AsteroidFrac0"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> asteroidMesh2Asset(TEXT("/Game/Asteroids/Art/Asteroids/SM_AsteroidFrac1.SM_AsteroidFrac1"));
-
-	switch (FMath::Rand()%3)
+	if (mMeshesPossible.Num() == 0)
 	{
-	case 0:
-		mMeshComponent->SetStaticMesh(asteroidMeshAsset.Object);
-	break;
-	case 1:
-		mMeshComponent->SetStaticMesh(asteroidMesh1Asset.Object);
-	break;
-	case 2:
-		mMeshComponent->SetStaticMesh(asteroidMesh2Asset.Object);
-	break;
-	default:
-	break;
+		static ConstructorHelpers::FObjectFinder<UStaticMesh> asteroidMeshAsset(TEXT("/Game/Asteroids/Art/Asteroids/SM_Asteroid.SM_Asteroid"));
+		static ConstructorHelpers::FObjectFinder<UStaticMesh> asteroidMesh1Asset(TEXT("/Game/Asteroids/Art/Asteroids/SM_AsteroidFrac0.SM_AsteroidFrac0"));
+		static ConstructorHelpers::FObjectFinder<UStaticMesh> asteroidMesh2Asset(TEXT("/Game/Asteroids/Art/Asteroids/SM_AsteroidFrac1.SM_AsteroidFrac1"));
+
+		if (asteroidMeshAsset.Succeeded()) mMeshesPossible.Add(asteroidMeshAsset.Object);
+		if (asteroidMesh1Asset.Succeeded()) mMeshesPossible.Add(asteroidMesh1Asset.Object);
+		if (asteroidMesh2Asset.Succeeded()) mMeshesPossible.Add(asteroidMesh2Asset.Object);
 	}
-
-	SetActorRotation(FRotationMatrix(FRotator(FMath::FRand() * 360, FMath::FRand() * 360, FMath::FRand() * 360)).ToQuat());
-
+	
 	mHitPoints = 100;
 	mScoreValue = 100;
 }
 
-void AAsteroid::SetupAsteroid(FAsteroidInfo info, float hitPoints)
+void AAsteroid::SetupAsteroid(const FAsteroidInfo& info, float hitPoints)
 {
+
+	mpMeshComponent->SetStaticMesh(mMeshesPossible[FMath::Rand() % mMeshesPossible.Num()]);
+
+	SetActorRotation(FRotationMatrix(FRotator(FMath::FRand() * 360, FMath::FRand() * 360, FMath::FRand() * 360)).ToQuat());
+
 	mHitPoints = hitPoints;
 
 	mInfo = info;
 
-	if(IsValid(mMeshComponent))
+	if(IsValid(mpMeshComponent))
 	{
-		mMeshComponent->AddImpulse(info.velocity, NAME_None, true);
+		mpMeshComponent->AddImpulse(info.velocity, NAME_None, true);
 
-		mMeshComponent->AddAngularImpulseInDegrees(info.angularVelocity, NAME_None, true);
+		mpMeshComponent->AddAngularImpulseInDegrees(info.angularVelocity, NAME_None, true);
 
-		mMeshComponent->SetWorldScale3D(FVector(info.scale));
+		mpMeshComponent->SetWorldScale3D(FVector(info.scale));
 	}
 }
 
-// Called when the game starts or when spawned
-void AAsteroid::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-// Called every frame
-void AAsteroid::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-
 void AAsteroid::ReceiveDamage_Implementation(APawn* instigator, float damage)
 {
-	mInfo.velocity = mMeshComponent->GetComponentVelocity();
-	mInfo.angularVelocity = mMeshComponent->GetPhysicsAngularVelocityInDegrees();
+	// Super::ReceiveDamage may use mInfo so it should be updated first
+	mInfo.velocity = mpMeshComponent->GetComponentVelocity();
+	mInfo.angularVelocity = mpMeshComponent->GetPhysicsAngularVelocityInDegrees();
 
 	Super::ReceiveDamage_Implementation(instigator, damage);
 }

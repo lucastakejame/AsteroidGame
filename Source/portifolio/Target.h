@@ -16,39 +16,44 @@ class PORTIFOLIO_API ATarget : public APawn, public IDamageInterface
 {
 	GENERATED_BODY()
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 
-public:
-// Components
-	// The mesh component
-	UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* mMeshComponent;
+	UPROPERTY(Category = Assets, VisibleDefaultsOnly, BlueprintReadWrite)
+	class UStaticMeshComponent* mpMeshComponent;
 
-// Members
 	// Sound to play each time we fire
-	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
-	class USoundBase* mExplosionSound;
+	UPROPERTY(Category = Assets, EditAnywhere, BlueprintReadWrite)
+	class USoundBase* mpSoundExplosion;
 
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category = TargetSettings, EditAnywhere, BlueprintReadWrite)
 	float mHitPoints;
 
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category = TargetSettings, EditAnywhere, BlueprintReadWrite)
 	int32 mScoreValue;
 
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category = TargetSettings, EditAnywhere, BlueprintReadWrite)
 	float mLimitSpeed;
 
-	FNotifyDeathSignature mNotifyDeathDelegate;
-
-// Methods
-	// Sets default values for this actor's properties
-	ATarget();
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-// Damage Interface
+public:
+
+	// Sets default values for this actor's properties
+	ATarget();
+
+	float GetHitPoints() const { return mHitPoints; }
+
+	void SetHitPoints(float hitPoints) { mHitPoints = hitPoints; }
+
+	int32 GetScoreValue() const { return mScoreValue; }
+
+	void SetScoreValue(int32 scoreValue) { mScoreValue = scoreValue; }
+
+	// Damage Interface
 	virtual void ReceiveDamage_Implementation(APawn* instigator, float damage) override;
+
+	// Delegates
+	FNotifyDeathSignature mOnDeath;
 
 };

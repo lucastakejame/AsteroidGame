@@ -14,12 +14,13 @@ class PORTIFOLIO_API AEnemyShip : public ATarget
 {
 	GENERATED_BODY()
 
-public:
+private:
 // Members
 	FVector mMovingDirection;
 
 	class AGun* mpGun = nullptr;
 
+public:
 // Methods
 	AEnemyShip();
 

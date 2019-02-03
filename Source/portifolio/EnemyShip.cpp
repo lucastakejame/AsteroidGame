@@ -18,16 +18,17 @@ AEnemyShip::AEnemyShip() : ATarget()
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> enemyMeshAsset(TEXT("/Engine/BasicShapes/Cone.Cone"));
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> enemyMaterialAsset(TEXT("/Engine/MapTemplates/Materials/BasicAsset01.BasicAsset01"));
-	if(enemyMeshAsset.Succeeded()) mMeshComponent->SetStaticMesh(enemyMeshAsset.Object);
-	if(enemyMaterialAsset.Succeeded())  mMeshComponent->SetMaterial(0, enemyMaterialAsset.Object);
+	if(enemyMeshAsset.Succeeded()) mpMeshComponent->SetStaticMesh(enemyMeshAsset.Object);
+	if(enemyMaterialAsset.Succeeded())  mpMeshComponent->SetMaterial(0, enemyMaterialAsset.Object);
 
-	mMeshComponent->BodyInstance.bLockXRotation = true;
-	mMeshComponent->BodyInstance.bLockYRotation = true;
-	mMeshComponent->BodyInstance.LinearDamping = 1;
-	mMeshComponent->BodyInstance.AngularDamping = 1;
+	// We want physics interaction but no crazy rotation or translation
+	mpMeshComponent->BodyInstance.bLockXRotation = true;
+	mpMeshComponent->BodyInstance.bLockYRotation = true;
+	mpMeshComponent->BodyInstance.LinearDamping = 1;
+	mpMeshComponent->BodyInstance.AngularDamping = 1;
 
 	// It'll be used to collect guns
-	mMeshComponent->OnComponentBeginOverlap.AddDynamic(this, &AEnemyShip::OnOverlap);
+	mpMeshComponent->OnComponentBeginOverlap.AddDynamic(this, &AEnemyShip::OnOverlap);
 
 	mHitPoints = 150;
 	mScoreValue = 400;
@@ -78,7 +79,7 @@ void AEnemyShip::Tick(float DeltaTime)
 
 	SetActorRotation(newRot);
 
-	mMeshComponent->AddImpulse(GetActorForwardVector()*3., NAME_None, true);
+	mpMeshComponent->AddImpulse(GetActorForwardVector()*3., NAME_None, true);
 }
 
 
