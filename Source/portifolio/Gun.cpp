@@ -61,7 +61,7 @@ void AGun::SetGunType(const EGunType type)
 	}
 }
 
-void AGun::AttachToPawn(APawn* pawn, FTransform relativeT)
+void AGun::AttachToPawn(APawn* pawn, const FTransform& relativeT)
 {
 	SetOwner(pawn);
 	mpMeshComponent->SetHiddenInGame(true);
@@ -78,6 +78,7 @@ void AGun::Shoot()
 	static FActorSpawnParameters sParams;
 	sParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	sParams.Instigator = Cast<APawn>(GetOwner());
+	
 	check(sParams.Instigator != nullptr);
 
 	if (mCanShoot)
@@ -153,13 +154,6 @@ void AGun::BeginPlay()
 
 	mpWorld = GetWorld();
 }
-
-// Called every frame
-void AGun::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
 
 void AGun::EnableShooting()
 {

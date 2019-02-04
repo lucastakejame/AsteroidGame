@@ -14,24 +14,24 @@ AProjectile::AProjectile()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> ProjectileMeshAsset(TEXT("/Game/TwinStick/Meshes/TwinStickProjectile.TwinStickProjectile"));
 
 	// Create mesh component for the projectile sphere
-	mProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh0"));
-	mProjectileMesh->SetStaticMesh(ProjectileMeshAsset.Object);
-	mProjectileMesh->SetupAttachment(RootComponent);
-	mProjectileMesh->BodyInstance.SetCollisionProfileName("TargetProjectile");
-	mProjectileMesh->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);		// set up a notification for when this component hits something
-	mProjectileMesh->SetNotifyRigidBodyCollision(true);
-	RootComponent = mProjectileMesh;
+	mpProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh0"));
+	mpProjectileMesh->SetStaticMesh(ProjectileMeshAsset.Object);
+	mpProjectileMesh->SetupAttachment(RootComponent);
+	mpProjectileMesh->BodyInstance.SetCollisionProfileName("TargetProjectile");
+	mpProjectileMesh->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);		// set up a notification for when this component hits something
+	mpProjectileMesh->SetNotifyRigidBodyCollision(true);
+	RootComponent = mpProjectileMesh;
 
 	// Use a ProjectileMovementComponent to govern this projectile's movement
-	mProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement0"));
-	mProjectileMovement->UpdatedComponent = mProjectileMesh;
-	mProjectileMovement->InitialSpeed = 3000.f;
-	mProjectileMovement->MaxSpeed = 3000.f;
-	mProjectileMovement->bRotationFollowsVelocity = true;
-	mProjectileMovement->bShouldBounce = false;
-	mProjectileMovement->ProjectileGravityScale = 0.f; // No gravity
+	mpProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement0"));
+	mpProjectileMovement->UpdatedComponent = mpProjectileMesh;
+	mpProjectileMovement->InitialSpeed = 3000.f;
+	mpProjectileMovement->MaxSpeed = 3000.f;
+	mpProjectileMovement->bRotationFollowsVelocity = true;
+	mpProjectileMovement->bShouldBounce = false;
+	mpProjectileMovement->ProjectileGravityScale = 0.f; // No gravity
 
-	mProjectileMesh->SetAllUseCCD(true);
+	mpProjectileMesh->SetAllUseCCD(true);
 
 	// Die after 1 second by default
 	InitialLifeSpan = 1.0f;
@@ -69,7 +69,7 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 		SetLifeSpan(0.00001);
 		
 		// Without destroy() this function executes 2 times, so now this solves that
-		mProjectileMesh->SetCollisionProfileName("NoCollision");
-		mProjectileMesh->SetVisibility(false);
+		mpProjectileMesh->SetCollisionProfileName("NoCollision");
+		mpProjectileMesh->SetVisibility(false);
 	}
 }

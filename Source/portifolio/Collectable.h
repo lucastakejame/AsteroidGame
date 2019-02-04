@@ -22,7 +22,10 @@ class PORTIFOLIO_API ACollectable : public AActor
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY(Category = Assets, VisibleDefaultsOnly, BlueprintReadWrite)
 	class UStaticMeshComponent* mpMeshComponent;
+	
+	UPROPERTY(Category = Assets, VisibleDefaultsOnly, BlueprintReadWrite)
 	class UMaterialInstanceDynamic* mpMID;
 
 	ECollectableType mType;
@@ -35,5 +38,5 @@ public:
 
 	void SetCollectableType(ECollectableType type);
 
-	static ACollectable* SpawnRandomCollectable(UWorld* world, FTransform t);
+	static ACollectable* SpawnRandomCollectable(UWorld* world, const FTransform& t);
 };

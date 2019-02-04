@@ -21,15 +21,11 @@ class PORTIFOLIO_API AGun : public ACollectable
 {
 	GENERATED_BODY()
 
-protected:
+private:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-
-public:
-
-
-	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class USoundBase* mpFireSound;
 
 	EGunType mGunType;
@@ -42,6 +38,7 @@ public:
 
 	FName mProjectileCollisionProfile;
 
+public:
 
 	// Sets default values for this actor's properties
 	AGun();
@@ -50,15 +47,14 @@ public:
 	void EnableShooting();
 
 	UFUNCTION()
-	void AttachToPawn(APawn* pawn, FTransform relativeT);
+	void AttachToPawn(APawn* pawn, const FTransform& relativeT);
+
+	UFUNCTION()
+	EGunType GetGunType() const { return mGunType; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetGunType(const EGunType type);
 
 	UFUNCTION()
 	void Shoot();
-
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 };

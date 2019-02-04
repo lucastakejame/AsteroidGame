@@ -19,7 +19,7 @@ ACollectable::ACollectable()
 
 	mpMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CollectableMesh"));
 	RootComponent = mpMeshComponent;
-	
+
 	if (meshAsset.Succeeded())
 	{
 		mpMeshComponent->SetStaticMesh(meshAsset.Object);
@@ -74,7 +74,7 @@ void ACollectable::SetCollectableType(ECollectableType type)
 }
 
 
-ACollectable* ACollectable::SpawnRandomCollectable(UWorld* world, FTransform t)
+ACollectable* ACollectable::SpawnRandomCollectable(UWorld* world, const FTransform& t)
 {
 	ACollectable* result = nullptr;
 	if (IsValid(world))

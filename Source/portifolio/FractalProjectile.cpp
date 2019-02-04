@@ -19,7 +19,6 @@ void AFractalProjectile::SetupFractalAsteroid(float lifeSpan, float damage, FVec
 	// reorient actor through rotation
 	GetProjectileMovement()->Velocity = velocity;
 
-	// SetActorRotation(FRotationMatrix::MakeFromX(velocity.GetSafeNormal()).Rotator());
 	GetProjectileMovement()->MaxSpeed = velocity.Size();
 
 	mIterationsLeft = iterationsLeft;

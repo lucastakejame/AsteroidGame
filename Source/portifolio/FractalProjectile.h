@@ -14,7 +14,7 @@ class PORTIFOLIO_API AFractalProjectile : public AProjectile
 {
 	GENERATED_BODY()
 
-public:
+private:
 // Members
 
 	// How many times this will Spawn, it will spawn n children while mFractalIterations > 0
@@ -29,6 +29,7 @@ public:
 
 	bool mWasHit = false;
 
+public:
 // Methods
 
 	void SetupFractalAsteroid(float lifeSpan, float damage, FVector velocity, int32 iterationsLeft, int32 numChilds, FName collisionProfile);

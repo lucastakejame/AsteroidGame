@@ -6,22 +6,19 @@
 #include "GameFramework/Actor.h"
 #include "Projectile.generated.h"
 
-class UProjectileMovementComponent;
-class UStaticMeshComponent;
-
 UCLASS(config=Game)
 class AProjectile : public AActor
 {
 	GENERATED_BODY()
 
-	/** Sphere collision component */
+private:
+	/** Sphere Mesh component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Projectile, meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* mProjectileMesh;
+	class UStaticMeshComponent* mpProjectileMesh;
 
 	/** Projectile movement component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	UProjectileMovementComponent* mProjectileMovement;
-
+	class UProjectileMovementComponent* mpProjectileMovement;
 
 	UPROPERTY()
 	float mDamage;
@@ -33,12 +30,12 @@ public:
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	/** Returns ProjectileMesh subobject **/
-	FORCEINLINE UStaticMeshComponent* GetProjectileMesh() const { return mProjectileMesh; }
-	/** Returns ProjectileMovement subobject **/
-	FORCEINLINE UProjectileMovementComponent* GetProjectileMovement() const { return mProjectileMovement; }
+	FORCEINLINE UStaticMeshComponent* GetProjectileMesh() const { return mpProjectileMesh; }
 
-	float GetDamage() { return mDamage; }
+	FORCEINLINE UProjectileMovementComponent* GetProjectileMovement() const { return mpProjectileMovement; }
+
+	FORCEINLINE float GetDamage() const { return mDamage; }
+	
 	void SetDamage(float damage) { mDamage = damage;  }
 
 };
