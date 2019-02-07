@@ -6,13 +6,6 @@
 #include "UObject/Interface.h"
 #include "DamageInterface.generated.h"
 
-UENUM(BlueprintType)
-enum class ETargetType : uint8
-{
-	ASTEROID UMETA(DisplayName = "Asteroid"),
-	ENEMYSHIP UMETA(DisplayName="EnemyShip")
-};
-
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UDamageInterface : public UInterface
@@ -30,9 +23,11 @@ class PORTIFOLIO_API IDamageInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
+	// Wil be executed by actor receiving damage
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void ReceiveDamage(APawn* instigator, float damage);
+	void ReceiveDamage(APawn* pInstigator, float damage);
 	
+	// Will be executed by pawn that killed and got these points
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void ReceiveDeathNotification(int32 points);
 };

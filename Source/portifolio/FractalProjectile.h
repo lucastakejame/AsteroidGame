@@ -7,7 +7,7 @@
 #include "FractalProjectile.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class PORTIFOLIO_API AFractalProjectile : public AProjectile
@@ -17,12 +17,12 @@ class PORTIFOLIO_API AFractalProjectile : public AProjectile
 private:
 // Members
 
-	// How many times this will Spawn, it will spawn n children while mFractalIterations > 0
+	// While > 0, spawn mNumChilds fractalProjectiles when destroyed
 	int32 mIterationsLeft;
 
 	// number of projectiles spawned whem this one dies
 	int32 mNumChilds;
-	
+
 	FName mCollisionProfile;
 
 	float mInitialLifeSpan;
@@ -32,8 +32,10 @@ private:
 public:
 // Methods
 
-	void SetupFractalAsteroid(float lifeSpan, float damage, FVector velocity, int32 iterationsLeft, int32 numChilds, FName collisionProfile);
+	// Set all these variables
+	void Setup(float lifeSpan, float damage, FVector velocity, int32 iterationsLeft, int32 numChilds, FName collisionProfile);
 
+	// Handle destruction and spawn child fractalProjectiles if there are iterations left
 	virtual void Destroyed() override;
 
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;

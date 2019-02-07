@@ -14,11 +14,11 @@ class AProjectile : public AActor
 private:
 	/** Sphere Mesh component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Projectile, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* mpProjectileMesh;
+	class UStaticMeshComponent* mpMeshComponentProjectile;
 
 	/** Projectile movement component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	class UProjectileMovementComponent* mpProjectileMovement;
+	class UProjectileMovementComponent* mpProjectileMovementComponent;
 
 	UPROPERTY()
 	float mDamage;
@@ -28,14 +28,14 @@ public:
 
 	/** Function to handle the projectile hitting something */
 	UFUNCTION()
-	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	virtual void OnHit(UPrimitiveComponent* pHitComp, AActor* pOtherActor, UPrimitiveComponent* pOtherComp, FVector normalImpulse, const FHitResult& crHit);
 
-	FORCEINLINE UStaticMeshComponent* GetProjectileMesh() const { return mpProjectileMesh; }
+	FORCEINLINE UStaticMeshComponent* GetProjectileMesh() const { return mpMeshComponentProjectile; }
 
-	FORCEINLINE UProjectileMovementComponent* GetProjectileMovement() const { return mpProjectileMovement; }
+	FORCEINLINE UProjectileMovementComponent* GetProjectileMovement() const { return mpProjectileMovementComponent; }
 
 	FORCEINLINE float GetDamage() const { return mDamage; }
-	
+
 	void SetDamage(float damage) { mDamage = damage;  }
 
 };

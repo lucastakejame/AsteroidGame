@@ -8,7 +8,7 @@
 #include "DebugUtils.h"
 
 
-void AFractalProjectile::SetupFractalAsteroid(float lifeSpan, float damage, FVector velocity, int32 iterationsLeft, int32 numChilds, FName collisionProfile)
+void AFractalProjectile::Setup(float lifeSpan, float damage, FVector velocity, int32 iterationsLeft, int32 numChilds, FName collisionProfile)
 {
 
 	mInitialLifeSpan = lifeSpan;
@@ -16,9 +16,8 @@ void AFractalProjectile::SetupFractalAsteroid(float lifeSpan, float damage, FVec
 
 	SetDamage(damage);
 
-	// reorient actor through rotation
+	// Setting direction and speed
 	GetProjectileMovement()->Velocity = velocity;
-
 	GetProjectileMovement()->MaxSpeed = velocity.Size();
 
 	mIterationsLeft = iterationsLeft;
@@ -47,7 +46,7 @@ void AFractalProjectile::Destroyed()
 
 			FVector vel = GetProjectileMovement()->Velocity.RotateAngleAxis(FMath::Lerp(-20,20,alpha), FVector(0,0,1));
 
-			proj->SetupFractalAsteroid(mInitialLifeSpan/1.5f, GetDamage()/mNumChilds, vel, mIterationsLeft-1, mNumChilds, mCollisionProfile);
+			proj->Setup(mInitialLifeSpan/1.5f, GetDamage()/mNumChilds, vel, mIterationsLeft-1, mNumChilds, mCollisionProfile);
 		}
 	}
 
