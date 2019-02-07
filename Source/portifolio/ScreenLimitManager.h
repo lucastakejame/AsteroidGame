@@ -10,34 +10,33 @@ UCLASS()
 class PORTIFOLIO_API AScreenLimitManager : public AActor
 {
 	GENERATED_BODY()
-
-	UWorld* mWorld;
-	
-	
-public:	
-	// Sets default values for this actor's properties
-	AScreenLimitManager();
+private:
 
 	UPROPERTY(EditAnywhere)
 	float mLimitWidth;
-
 
 	UPROPERTY(EditAnywhere)
 	float mLimitHeight;
 
 	UPROPERTY(EditAnywhere)
-	bool mDrawDebugLimits;
+	bool mShouldDrawDebugLimits;
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+public:
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	// Sets default values for this actor's properties
+	AScreenLimitManager();
 
-	virtual void OnConstruction(const FTransform& transform) override;
+	virtual void OnConstruction(const FTransform& crT) override;
 
+	// Keeping actors in limits
+	virtual void Tick(float deltaTime) override;
+
+	// corner0 has (minX,minY), corner1 has (maxX, maxY)
+	UFUNCTION(BlueprintCallable)
 	FVector WrapLocation(FVector location, FVector corner0, FVector corner1);
+
+	// Returns a random spot inside limits
+	UFUNCTION(BlueprintCallable)
+	FVector GetRandomLocationInsideLimits() const;
 
 };

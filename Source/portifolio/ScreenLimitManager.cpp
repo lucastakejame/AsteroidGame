@@ -19,57 +19,33 @@ AScreenLimitManager::AScreenLimitManager()
 
 }
 
-void AScreenLimitManager::OnConstruction(const FTransform& transform)
+void AScreenLimitManager::OnConstruction(const FTransform& crT)
 {
-
-	mWorld = GetWorld();
-	
-	if (mDrawDebugLimits)
+	if (mShouldDrawDebugLimits)
 	{
-		DrawDebugBox(mWorld, FVector(0, 0, 0), FVector(mLimitHeight / 2, mLimitWidth / 2, 0), FColor(255, 0, 0, 255), false, 1, 0, 5);
+		DrawDebugBox(GetWorld(), FVector(0, 0, 0), FVector(mLimitHeight / 2, mLimitWidth / 2, 0), FColor(255, 0, 0, 255), false, 1, 0, 5);
 	}
 }
 
-
-// Called when the game starts or when spawned
-void AScreenLimitManager::BeginPlay()
+void AScreenLimitManager::Tick(float deltaTime)
 {
-	Super::BeginPlay();
-	mWorld = GetWorld();
+	Super::Tick(deltaTime);
 
-}
-
-// Called every frame
-void AScreenLimitManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-
-	if (mWorld)
+	for (TActorIterator<AActor> itActor(GetWorld()); itActor; ++itActor)
 	{
-		if (mDrawDebugLimits)
-		{
-			DrawDebugBox(mWorld, FVector(0, 0, 0), FVector(mLimitHeight / 2, mLimitWidth / 2, 0), FColor(255, 0, 0, 255), false, 0, 0, 5);
-		}
-		for (TActorIterator<AActor> actrItr(mWorld); actrItr; ++actrItr)
-		{
-			AActor* actor = *actrItr;
+		AActor* pActor = *itActor;
 
-
-			if (IsValid(actor) 
-				&& actor->ActorHasTag(FName("wrappable"))
-				)
-			{
-				FVector oldLocation = actor->GetActorLocation();
-				FVector newLocation = WrapLocation(actor->GetActorLocation(), FVector(-mLimitHeight / 2, -mLimitWidth / 2, 0), FVector(mLimitHeight / 2, mLimitWidth / 2, 0));
-				actor->SetActorLocation(newLocation, false, (FHitResult *)nullptr, ETeleportType::TeleportPhysics);
-			}
+		if (IsValid(pActor)
+			&& pActor->ActorHasTag(FName("wrappable"))
+			)
+		{
+			FVector oldLocation = pActor->GetActorLocation();
+			FVector newLocation = WrapLocation(pActor->GetActorLocation(), FVector(-mLimitHeight / 2, -mLimitWidth / 2, 0), FVector(mLimitHeight / 2, mLimitWidth / 2, 0));
+			pActor->SetActorLocation(newLocation, false, (FHitResult *)nullptr, ETeleportType::TeleportPhysics);
 		}
 	}
-
 }
 
-// corner0 has (minX,minY), corner1 has (maxX, maxY)
 FVector AScreenLimitManager::WrapLocation(FVector location, FVector corner0, FVector corner1)
 {
 	FVector loc = location;
@@ -98,3 +74,14 @@ FVector AScreenLimitManager::WrapLocation(FVector location, FVector corner0, FVe
 	return newLoc;
 }
 
+FVector AScreenLimitManager::GetRandomLocationInsideLimits() const
+{
+
+	FVector l;
+
+	l.X = FMath::Lerp<float>(-mLimitHeight / 2, mLimitHeight / 2, FMath::FRand());
+	l.Y = FMath::Lerp<float>(-mLimitWidth / 2, mLimitWidth / 2, FMath::FRand());
+	l.Z = 0;
+
+	return l;
+}
