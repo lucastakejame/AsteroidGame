@@ -34,76 +34,84 @@ AEnemyShip::AEnemyShip() : ATarget()
 	mScoreValue = 400;
 
 	mMovingDirection = FVector(0, 1, 0);
+
+	mDirectionChangeCoolDown = 1.5;
+	mShootingCoolDown = 1.;
+	mImpulseMultiplier = 3.;
+	mAimEccentricity = 50.;
 }
 
 void AEnemyShip::BeginPlay()
 {
 	Super::BeginPlay();
-	UWorld* w = GetWorld();
+	UWorld* pW = GetWorld();
 
-	if (IsValid(w))
+	if (IsValid(pW))
 	{
 		FTimerHandle th;
 		FTimerHandle th2;
 
-		w->GetTimerManager().SetTimer(th, this, &AEnemyShip::ChangeMovingDirection, 1.5, true);
-		w->GetTimerManager().SetTimer(th2, this, &AEnemyShip::Shoot, 1., true, FMath::FRand()*2.);
+		pW->GetTimerManager().SetTimer(th, this, &AEnemyShip::ChangeMovingDirection, mDirectionChangeCoolDown, true);
+		// Random initial delay so they don't sync up shooting necessarily
+		pW->GetTimerManager().SetTimer(th2, this, &AEnemyShip::Shoot, mShootingCoolDown, true, FMath::FRand()*2.);
 
-		mpGun = w->SpawnActor<AGun>(AGun::StaticClass(), GetActorTransform());
+		mpGun = pW->SpawnActor<AGun>(AGun::StaticClass(), GetActorTransform());
 		mpGun->AttachToPawn(this, FTransform( FRotator(0, 0, 0), FVector(90, 0, 0) ) );
 		mpGun->SetGunType(EGunType::SlowGun);
 	}
 }
 
-void AEnemyShip::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+void AEnemyShip::Tick(float deltaTime)
 {
-	AGun* gun = Cast<AGun>(OtherActor);
+	Super::Tick(deltaTime);
 
-	if (IsValid(gun))
-	{
-		if (IsValid(mpGun)) mpGun->Destroy();
-
-		mpGun = gun;
-		gun->AttachToPawn(this, FTransform(FRotator(0, 0, 0), FVector(90, 0, 0)));
-	}
-}
-
-
-// TODO: Investigate weird movimentation, disappearing from time to time
-void AEnemyShip::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
+	// interpolate rotation aiming moving direction
 	FRotator targRot = FRotationMatrix::MakeFromXZ(mMovingDirection, FVector(0, 0, 1)).Rotator();
-	FRotator newRot = FMath::RInterpTo(GetActorRotation(), targRot, DeltaTime, 5.);
+	FRotator newRot = FMath::RInterpTo(GetActorRotation(), targRot, deltaTime, 5.);
 
 	SetActorRotation(newRot);
 
-	mpMeshComponent->AddImpulse(GetActorForwardVector()*3., NAME_None, true);
+	// Move
+	mpMeshComponent->AddImpulse(GetActorForwardVector()*mImpulseMultiplier, NAME_None, true);
+}
+
+void AEnemyShip::OnOverlap(UPrimitiveComponent* pOverlappedComponent, AActor* pOtherActor, UPrimitiveComponent* pOtherComp, int32 otherBodyIndex, bool isFromSweep, const FHitResult & crSweepResult)
+{
+	AGun* pGun = Cast<AGun>(pOtherActor);
+
+	if (IsValid(pGun))
+	{
+		if (IsValid(mpGun)) mpGun->Destroy();
+
+		mpGun = pGun;
+		pGun->AttachToPawn(this, FTransform(FRotator(0, 0, 0), FVector(90, 0, 0)));
+	}
 }
 
 
 void AEnemyShip::ChangeMovingDirection()
 {
-	const float angle = FMath::Lerp(-90, 90, FMath::FRand());
-	mMovingDirection = mMovingDirection.RotateAngleAxis(angle, FVector(0, 0, 1));
+	const float cAngle = FMath::Lerp(-90, 90, FMath::FRand());
+	mMovingDirection = mMovingDirection.RotateAngleAxis(cAngle, FVector(0, 0, 1));
 }
 
 void AEnemyShip::Shoot()
 {
-	AAsteroidShip* ship = Cast<AAsteroidShip>( UGameplayStatics::GetPlayerPawn(this, 0) );
+	AAsteroidShip* pAsteroidShip = Cast<AAsteroidShip>( UGameplayStatics::GetPlayerPawn(this, 0) );
 
-	if (IsValid(mpGun) && IsValid(ship) && ship->CanTakeDamage())
+	if (IsValid(mpGun) && IsValid(pAsteroidShip) && pAsteroidShip->CanTakeDamage())
 	{
 
-		// Position gun so it is always between this ship and the target
-		FVector shipLoc = ship->GetActorLocation();
+		FVector shipLoc = pAsteroidShip->GetActorLocation();
+
+		// Aim on player and add eccentricity random vector to maybe miss shot
 		FVector targetLoc = shipLoc
 			+ FVector(FMath::FRand()-.5, FMath::FRand()-.5, FMath::FRand()-.5).Normalize()
-			* FMath::Lerp(-1.f, 1.f, FMath::FRand()) * 50;
+			* FMath::Lerp(-mAimEccentricity, mAimEccentricity, FMath::FRand());
 
 		FTransform t = FTransform();
 
+		// Position gun so it is always between this ship and the target
 		t.SetLocation(GetActorLocation() + 90 * (shipLoc - GetActorLocation()).GetSafeNormal());
 		t.SetRotation(FRotationMatrix::MakeFromXZ(targetLoc-t.GetLocation() , FVector(0, 0, 1)).ToQuat());
 

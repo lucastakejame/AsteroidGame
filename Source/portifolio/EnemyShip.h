@@ -7,7 +7,7 @@
 #include "EnemyShip.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class PORTIFOLIO_API AEnemyShip : public ATarget
@@ -18,20 +18,42 @@ private:
 // Members
 	FVector mMovingDirection;
 
+	// gun used to shoot player
 	class AGun* mpGun = nullptr;
+
+	// time before changing movement direction again
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float mDirectionChangeCoolDown;
+
+	// cooldown between 1 shot and other, not attached to gun shoot cooldown
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float mShootingCoolDown;
+
+	// Will amplify impulse applied in enemy for movement
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float mImpulseMultiplier;
+
+	// The bigger this value, higher the chance of aiming poorly towards the player
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float mAimEccentricity;
+
+
 
 public:
 // Methods
 	AEnemyShip();
 
-	UFUNCTION()
-	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
-
 	virtual void BeginPlay() override;
 
-	virtual void Tick(float DeltaTime) override;
-	
+	virtual void Tick(float deltaTime) override;
+
+	// Handle getting collector
+	UFUNCTION()
+	void OnOverlap(UPrimitiveComponent* pOverlappedComponent, AActor* pOtherActor, UPrimitiveComponent* pOtherComp, int32 otherBodyIndex, bool isFromSweep, const FHitResult & crSweepResult);
+
+	// change direction of movement to a random direction within a range
 	void ChangeMovingDirection();
 
+	// attack player
 	void Shoot();
 };

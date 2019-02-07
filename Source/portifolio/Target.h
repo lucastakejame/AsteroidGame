@@ -7,8 +7,6 @@
 #include "DamageInterface.h"
 #include "Target.generated.h"
 
-class UStaticMeshComponent;
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FNotifyDeathSignature, ATarget*, destroyedTargetRef);
 
 UCLASS()
@@ -39,9 +37,13 @@ protected:
 
 public:
 
+	// Delegates
+	FNotifyDeathSignature mOnDeath;
+
 	// Sets default values for this actor's properties
 	ATarget();
 
+	// Getters and setters
 	float GetHitPoints() const { return mHitPoints; }
 
 	void SetHitPoints(float hitPoints) { mHitPoints = hitPoints; }
@@ -51,9 +53,5 @@ public:
 	void SetScoreValue(int32 scoreValue) { mScoreValue = scoreValue; }
 
 	// Damage Interface
-	virtual void ReceiveDamage_Implementation(APawn* instigator, float damage) override;
-
-	// Delegates
-	FNotifyDeathSignature mOnDeath;
-
+	virtual void ReceiveDamage_Implementation(APawn* pInstigator, float damage) override;
 };

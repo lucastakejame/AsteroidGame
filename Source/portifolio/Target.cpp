@@ -15,14 +15,16 @@ ATarget::ATarget()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	static ConstructorHelpers::FObjectFinder<USoundBase> explosionSoundAsset(TEXT("/Game/Asteroids/Sounds/SW_AsteroidExplosion.SW_AsteroidExplosion"));
-	mpSoundExplosion = explosionSoundAsset.Object;
+	static ConstructorHelpers::FObjectFinder<USoundBase> sAssetSoundExplosion(TEXT("/Game/Asteroids/Sounds/SW_AsteroidExplosion.SW_AsteroidExplosion"));
+	if(sAssetSoundExplosion.Succeeded()) mpSoundExplosion = sAssetSoundExplosion.Object;
 
 	mpMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TargetMesh"));
 	RootComponent = mpMeshComponent;
 
 	mpMeshComponent->BodyInstance.SetCollisionProfileName("Target");
 	mpMeshComponent->SetSimulatePhysics(true);
+
+	// we live in z = 0
 	mpMeshComponent->SetEnableGravity(false);
 	mpMeshComponent->BodyInstance.bLockZTranslation = true;
 
@@ -43,7 +45,7 @@ void ATarget::Tick(float DeltaTime)
 	mpMeshComponent->SetPhysicsLinearVelocity(mpMeshComponent->GetComponentVelocity().GetClampedToMaxSize(mLimitSpeed));
 }
 
-void ATarget::ReceiveDamage_Implementation(APawn* instigator, float damage)
+void ATarget::ReceiveDamage_Implementation(APawn* pInstigator, float damage)
 {
 	mHitPoints -= damage;
 
@@ -54,13 +56,13 @@ void ATarget::ReceiveDamage_Implementation(APawn* instigator, float damage)
 			UGameplayStatics::PlaySoundAtLocation(this, mpSoundExplosion, GetActorLocation());
 		}
 
-		if (IsValid(instigator))
+		if (IsValid(pInstigator))
 		{
-			if ( instigator->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()) )
+			if ( pInstigator->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()) )
 			{
 				// The Execute_ prefix includes blueprint versions of this function
 				// giving points to damage instigator
-				IDamageInterface::Execute_ReceiveDeathNotification(instigator, mScoreValue);
+				IDamageInterface::Execute_ReceiveDeathNotification(pInstigator, mScoreValue);
 			}
 		}
 		// Spawner will be in charge of destroying it

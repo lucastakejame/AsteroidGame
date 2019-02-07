@@ -7,6 +7,7 @@
 #include "DamageInterface.h"
 #include "Asteroid.generated.h"
 
+// This will be used to pass information for asteroid fragments
 USTRUCT()
 struct FAsteroidInfo
 {
@@ -28,20 +29,22 @@ private:
 	UPROPERTY(EditAnywhere)
 	FAsteroidInfo mInfo;
 
-public:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	TArray<UStaticMesh*> mMeshesPossible;
+
+public:
 
 // Methods
 	// Sets default values for this actor's properties
 	AAsteroid();
 
+	// Getter
 	FAsteroidInfo GetInfo() const { return mInfo; }
 
 	// update mInfo and applies velocities and scale
 	UFUNCTION()
-	void SetupAsteroid(const FAsteroidInfo& info, float hitPoints);
+	void SetupAsteroid(const FAsteroidInfo& crInfo, float hitPoints);
 
 	// Damage Interface
-	virtual void ReceiveDamage_Implementation(APawn* instigator, float damage) override;
+	virtual void ReceiveDamage_Implementation(APawn* pInstigator, float damage) override;
 };
