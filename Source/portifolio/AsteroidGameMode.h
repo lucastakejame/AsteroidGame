@@ -17,11 +17,13 @@ class PORTIFOLIO_API AAsteroidGameMode : public AGameModeBase
 public:
 	AAsteroidGameMode();
 
+    // For when Start game is pressed
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatcher")
-	FNotificationSignature mNotifyGameStartDelegate;
+	FNotificationSignature mOnGameStarted;
 
+    // For when last life is lost
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "Event Dispatcher")
-	FNotificationSignature mNotifyGameOverDelegate;
+	FNotificationSignature mOnGameEnded;
 
 
 };

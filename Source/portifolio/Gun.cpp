@@ -17,60 +17,71 @@
 // Sets default values
 AGun::AGun()
 {
-	static ConstructorHelpers::FObjectFinder<USoundBase> fireSoundAsset(TEXT("/Game/TwinStick/Audio/TwinStickFire.TwinStickFire"));
+	static ConstructorHelpers::FObjectFinder<USoundBase> sAssetSoundFire(TEXT("/Game/TwinStick/Audio/TwinStickFire.TwinStickFire"));
 
-	if (fireSoundAsset.Succeeded()) mpFireSound = fireSoundAsset.Object;
+	if (sAssetSoundFire.Succeeded()) mpSoundFire = sAssetSoundFire.Object;
 
 	SetCollectableType(ECollectableType::Gun);
 	mCanShoot = true;
 	mProjectileCollisionProfile = "TargetProjectile";
+
 	SetGunType(EGunType::NormalGun);
 }
 
 void AGun::SetGunType(const EGunType type)
 {
 	mGunType = type;
+
 	switch (type)
 	{
 		case EGunType::SlowGun:
 		{
-			mShootPeriod = .5;
-			if (mpMID) mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(.8, .8, .8, 1)));
+			mShootCoolDown = .5;
+			if (mpMID) mpMID->SetVectorParameterValue("color0", FLinearColor(FVector4(1, 1, 1, 1)));
+			if (mpMID) mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(1, 0, 0, 1)));
 		}
 		break;
 		case EGunType::NormalGun:
 		{
-			mShootPeriod = .1;
-			if (mpMID) mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(.2, .2, .8, 1)));
+			mShootCoolDown = .1;
+			if (mpMID) mpMID->SetVectorParameterValue("color0", FLinearColor(FVector4(0, 0, 1, 1)));
+			if (mpMID) mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(1, 0, 0, 1)));
 		}
 		break;
 		case EGunType::DoubleGun:
 		{
-			mShootPeriod = .1;
-			if (mpMID) mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(.8, .8, .2, 1)));
+			mShootCoolDown = .1;
+			if (mpMID) mpMID->SetVectorParameterValue("color0", FLinearColor(FVector4(1, 1, 0, 1)));
+			if (mpMID) mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(1, 0, 0, 1)));
 		}
 		break;
 		case EGunType::FractalGun:
 		{
-			mShootPeriod = .2;
-			if (mpMID) mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(.2, .8, .2, 1)));
+			mShootCoolDown = .2;
+			if (mpMID) mpMID->SetVectorParameterValue("color0", FLinearColor(FVector4(0, 1, 0, 1)));
+			if (mpMID) mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(1, 0, 0, 1)));
 		}
 		break;
 		default:
+			log("There must be a type...")
 		break;
 	}
+
 }
 
-void AGun::AttachToPawn(APawn* pawn, const FTransform& relativeT)
+void AGun::AttachToPawn(APawn* pPawn, const FTransform& crRelativeT)
 {
-	SetOwner(pawn);
+	// so it won't die like a regular collectable
+	SetLifeSpan(0);
+
+	SetOwner(pPawn);
 	mpMeshComponent->SetHiddenInGame(true);
 	mpMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	AttachToActor(pawn, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	SetActorRelativeTransform(relativeT);
+	AttachToActor(pPawn, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	SetActorRelativeTransform(crRelativeT);
 
-	mProjectileCollisionProfile = (Cast<AAsteroidShip>(pawn)) ? "PlayerProjectile" : "TargetProjectile";
+	mProjectileCollisionProfile = (Cast<AAsteroidShip>(pPawn)) ? "PlayerProjectile" : "TargetProjectile";
 }
 
 void AGun::Shoot()
@@ -78,7 +89,7 @@ void AGun::Shoot()
 	static FActorSpawnParameters sParams;
 	sParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	sParams.Instigator = Cast<APawn>(GetOwner());
-	
+
 	check(sParams.Instigator != nullptr);
 
 	if (mCanShoot)
@@ -87,45 +98,45 @@ void AGun::Shoot()
 		{
 		case EGunType::SlowGun:
 		{
-			AProjectile* projectile = mpWorld->SpawnActor<AProjectile>(GetActorLocation(), GetActorRotation(), sParams);
+			AProjectile* pProj = GetWorld()->SpawnActor<AProjectile>(GetActorLocation(), GetActorRotation(), sParams);
 
-			projectile->SetDamage(80);
-			projectile->GetProjectileMovement()->MaxSpeed = 1500;
-			projectile->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
-			projectile->GetProjectileMesh()->SetWorldScale3D(FVector(3.));
+			pProj->SetDamage(80);
+			pProj->GetProjectileMovement()->MaxSpeed = 1500;
+			pProj->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
+			pProj->GetProjectileMesh()->SetWorldScale3D(FVector(3.));
 		}
 		break;
 
 		case EGunType::NormalGun:
 		{
-			AProjectile* projectile = mpWorld->SpawnActor<AProjectile>(GetActorLocation(), GetActorRotation(), sParams);
+			AProjectile* pProj = GetWorld()->SpawnActor<AProjectile>(GetActorLocation(), GetActorRotation(), sParams);
 
-			projectile->SetDamage(50);
-			projectile->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
+			pProj->SetDamage(50);
+			pProj->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
 		}
 		break;
 
 		case EGunType::DoubleGun:
 		{
-			AProjectile* projectile = mpWorld->SpawnActor<AProjectile>(GetActorLocation() + 15*GetActorRightVector(), GetActorRotation(), sParams);
-			AProjectile* projectile2 = mpWorld->SpawnActor<AProjectile>(GetActorLocation() - 15* GetActorRightVector(), GetActorRotation(), sParams);
+			AProjectile* pProj = GetWorld()->SpawnActor<AProjectile>(GetActorLocation() + 15*GetActorRightVector(), GetActorRotation(), sParams);
+			AProjectile* pProj2 = GetWorld()->SpawnActor<AProjectile>(GetActorLocation() - 15* GetActorRightVector(), GetActorRotation(), sParams);
 
-			projectile->SetDamage(40);
-			projectile2->SetDamage(40);
+			pProj->SetDamage(40);
+			pProj2->SetDamage(40);
 
-			projectile->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
-			projectile2->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
+			pProj->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
+			pProj2->GetProjectileMesh()->SetCollisionProfileName(mProjectileCollisionProfile);
 		}
 		break;
 
 		case EGunType::FractalGun:
 		{
-			AFractalProjectile* projectile = mpWorld->SpawnActor<AFractalProjectile>(GetActorLocation(), GetActorRotation(), sParams);
+			AFractalProjectile* pProj = GetWorld()->SpawnActor<AFractalProjectile>(GetActorLocation(), GetActorRotation(), sParams);
 
 			int32 numIterations = 4;
 			float lifeSpan = .9f;
 
-			projectile->SetupFractalAsteroid(lifeSpan/(numIterations+1), 100, GetActorForwardVector()*2000.f, numIterations, 2, mProjectileCollisionProfile);
+			pProj->Setup(lifeSpan/(numIterations+1), 100, GetActorForwardVector()*2000.f, numIterations, 2, mProjectileCollisionProfile);
 		}
 		break;
 
@@ -133,9 +144,9 @@ void AGun::Shoot()
 		break;
 		}
 
-		if (mpFireSound != nullptr)
+		if (mpSoundFire != nullptr)
 		{
-			UGameplayStatics::PlaySoundAtLocation(this, mpFireSound, GetActorLocation());
+			UGameplayStatics::PlaySoundAtLocation(this, mpSoundFire, GetActorLocation());
 		}
 
 		mCanShoot = false;
@@ -143,17 +154,10 @@ void AGun::Shoot()
 		// It won't be paused so we don't need to keep the reference
 		FTimerHandle th;
 
-		mpWorld->GetTimerManager().SetTimer(th, this, &AGun::EnableShooting, mShootPeriod);
+		GetWorld()->GetTimerManager().SetTimer(th, this, &AGun::EnableShooting, mShootCoolDown);
 	}
 }
 
-// Called when the game starts or when spawned
-void AGun::BeginPlay()
-{
-	Super::BeginPlay();
-
-	mpWorld = GetWorld();
-}
 
 void AGun::EnableShooting()
 {

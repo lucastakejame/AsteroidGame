@@ -11,152 +11,199 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FNoParamSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOneIntSignature, int, num);
 
+
+// Variables reset when reviving related to movement and gun
 USTRUCT(BlueprintType)
-struct FAsteroidShipInfo
+struct FAsteroidShipStats
 {
 	GENERATED_BODY()
-	
+
 	// max speed in cm/s
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
-		float mMaxSpeed = 1000;
+	float mMaxLinearSpeed = 1000;
 
-	// rotation speed in degrees/s
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
-		float mRotateSpeed = 200;
+	// max rotation speed in degrees/s
+	UPROPERTY(Category = SHOWEY, EditAnywhere, BlueprintReadWrite)
+	float mMaxAngularSpeed = 200;
 
 	// acceleration applied in cm/s²
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
-		float mAccel = 10;
+	float mLinearAccel = 20;
 
+	// acceleration applied in degrees/s²
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
-		float mDeathCooldown = 1.5;
+	float mAngularAccel = 15;
 
+	// gun equiped
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
-		EGunType mGunType = EGunType::NormalGun;
+	EGunType mGunType = EGunType::NormalGun;
 };
 
 UCLASS(BlueprintType, Blueprintable)
 class PORTIFOLIO_API AAsteroidShip : public APawn, public IDamageInterface
 {
 	GENERATED_BODY()
-		
-	/* The mesh component */
+
+private:
+	// The mesh component
 	UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* mShipMeshComponent;
+	class UStaticMeshComponent* mpMeshComponentShip;
 
-	/* The audio component */
+	// The audio component
 	UPROPERTY(Category = Audio, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UAudioComponent* mThrustAudioComponent;
+	class UAudioComponent* mpAudioComponentThrust;
 
-	FVector mCurrentVelocity;
-	bool mShooting;
-	UWorld* mWorld;
+	// sounds that doesn't need to be stopped
+	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	class USoundBase* mpSoundFire;
 
+	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	class USoundBase* mpSoundExplosion;
+
+	// view target
+	UPROPERTY(Category = View, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	class ACameraActor* mpCamViewTarget;
+
+	// Initial values for settings
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	FAsteroidShipStats mInitialStats;
+
+	// Updating settings
+	UPROPERTY()
+	FAsteroidShipStats mStats;
+
+	// velocity being added each frame
+	UPROPERTY()
+	FVector mLinearVelocity;
+
+	// velocity being added each frame
+	UPROPERTY()
+	float mAngularSpeed;
+
+	// Current gun attached to ship
+	UPROPERTY()
 	class AGun* mpGun = nullptr;
+
+	UPROPERTY()
+	int32 mScore;
+
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	int32 mInitialLifeCount;
+
+	UPROPERTY()
+	int32 mLifeCount;
+
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float mDeathCooldown = 1.5;
+
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float mGhostCooldown = 1.5;
+
+	// While isGhost, this ship won't take hits or collide with collectables
+	UPROPERTY()
+	bool mIsGhost;
+
+	// When on, Ship won't appear in the screen
+	UPROPERTY()
+	bool mIsDead;
+
+	// is player holding shoot button
+	UPROPERTY()
+	bool mIsShooting;
+
+	// is game paused
+	UPROPERTY()
+	bool mIsPaused;
+
+	// timer to count death and ghost time
+	FTimerHandle mTimerHandleDeathCooldown;
+
+	// input binding names
+	static const FName mscBindingNameMoveForward;
+	static const FName mscBindingNameRotateRight;
+	static const FName mscBindingNameShoot;
+	static const FName mscBindingNameQuickTurn;
+	static const FName mscBindingNameCursorUp;
+	static const FName mscBindingNameCursorDown;
+	static const FName mscBindingNamePause;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(Category = ShipState, EditAnywhere, BlueprintReadWrite)
-	int32 mScore;
-
-	UPROPERTY(Category = ShipState, EditAnywhere, BlueprintReadWrite)
-	int32 mLifeCount;
-
-	UPROPERTY(Category = ShipState, EditAnywhere, BlueprintReadWrite)
-	bool mIsGhost;
-
-	UPROPERTY(Category = ShipState, EditAnywhere, BlueprintReadWrite)
-	bool mIsDead;
-
 public:
 
-// members
-
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
-	FAsteroidShipInfo mInitialInfo;
-
-	// view target
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
-	class ACameraActor* mpViewTargetCam;
-
-	// max speed in cm/s
-	float mMaxSpeed;
-
-	// rotation speed in degrees/s
-	float mRotateSpeed;
-
-	// acceleration applied in cm/s²
-	float mAccel;
-
-
-	float mDeathCooldown;
-
-	UPROPERTY(Category = Gameplay, BlueprintReadOnly)
-	bool mIsPaused;
-
-	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
-	class USoundBase* mpFireSound;
-
-	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
-	class USoundBase* mpExplosionSound;
-
-	// input binding names
-	static const FName mMoveForwardBinding;
-	static const FName mRotateRightBinding;
-	static const FName mShootBinding;
-	static const FName mQuickTurnBinding;
-	static const FName mCursorUp;
-	static const FName mCursorDown;
-	static const FName mPause;
-
-	// timers
-	FTimerHandle mTimerHandle_DeathCooldown;
-
-
-	// Delegates
+	// Delegates start with On and follows the action that triggered it
+	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
+	FNoParamSignature mOnCursorUp;
 
 	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
-		FNoParamSignature mCursorUpDelegate;
+	FNoParamSignature mOnCursorDown;
 
 	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
-		FNoParamSignature mCursorDownDelegate;
+	FNoParamSignature mOnCursorConfirmation;
 
 	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
-		FNoParamSignature mCursorConfirmDelegate;
+	FNoParamSignature mOnDeath;
 
 	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
-		FNoParamSignature mNotifyDeathDelegate;
+	FOneIntSignature mOnScoreChange;
 
 	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
-		FOneIntSignature mScoreUpdateDelegate;
-
-	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
-		FOneIntSignature mLifeCountUpdateDelegate;
+	FOneIntSignature mOnLifeCountChange;
 
 // Methods
 
 	// Sets default values for this pawn's properties
 	AAsteroidShip();
 
+	// Getters
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+		FORCEINLINE bool GetIsDead() const { return mIsDead; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+		FORCEINLINE bool GetIsPaused() const { return mIsPaused; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+		FORCEINLINE bool GetIsGhost() const { return mIsGhost; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+		FORCEINLINE bool GetIsShooting() const { return mIsShooting; }
+
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	virtual void Tick(float deltaTime) override;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	// input binding
+	virtual void SetupPlayerInputComponent(class UInputComponent* pPlayerInputComponent) override;
+
+	// input triggered methods
+	void EnableShooting();
+	void DisableShooting();
+	void NotifyUpPress();
+	void NotifyDownPress();
 
 	UFUNCTION()
-	void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
-
-	UFUNCTION()
-	void QuickTurn();
+	void TurnQuickly();
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateShip(float DeltaTime);
+	void TogglePauseGame();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void SetPauseGame(bool isPaused);
+	void SetPauseGame_Implementation(bool isPaused);
+
+
+	// Handling encounters
+	// These HAD to be called OnHit and OnOverlap otherwise unreal wouldn't callback
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* pHitComp, AActor* pOtherActor, UPrimitiveComponent* pOtherComp, FVector normalImpulse, const FHitResult& crHit);
+
+	UFUNCTION()
+	void OnOverlap(UPrimitiveComponent* pOverlappedComponent, AActor* pOtherActor, UPrimitiveComponent* pOtherComp, int32 otherBodyIndex, bool isFromSweep, const FHitResult& crSweepResult);
+
+	// Handle input to update ship movement, shoot and blink
+	UFUNCTION(BlueprintCallable)
+	void UpdateShip(float deltaTime);
 
 	// Setup ship for the game beginning
 	UFUNCTION(BlueprintCallable)
@@ -165,32 +212,25 @@ public:
 	// Setup position, gun and stats to initial conditions.
 	UFUNCTION(BlueprintCallable)
 	void ResetShipToReviveState();
-	
-	void SubtractLife();
-
-	void AddLife();
-
-	void DeathCooldownComplete();
-	
-	bool CanTakeDamage();
-	
-	// input triggered methods
-	void Shoot();
-	void EnableShooting();
-	void DisableShooting();
-	void NotifyUpPress();
-	void NotifyDownPress();
 
 	UFUNCTION(BlueprintCallable)
-	void TogglePauseGame();
+	void SubtractLife();
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void SetPauseGame(bool isPaused);
-	void SetPauseGame_Implementation(bool isPaused);
-	
+	UFUNCTION(BlueprintCallable)
+	void AddLife();
+
+	// routine for when death and ghost cooldown finish
+	void FinishDeathCooldown();
+
+	// Returns if player is ready to take damage
+	bool CanTakeDamage();
+
+	// spawn projectile
+	void Shoot();
+
 	// Damage Interface
 	virtual void ReceiveDeathNotification_Implementation(int32 points) override;
 
-	virtual void ReceiveDamage_Implementation(APawn* instigator, float damage) override;
+	virtual void ReceiveDamage_Implementation(APawn* pInstigator, float damage) override;
 
 };

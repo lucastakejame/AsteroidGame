@@ -22,20 +22,18 @@ class PORTIFOLIO_API AGun : public ACollectable
 	GENERATED_BODY()
 
 private:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 
 	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	class USoundBase* mpFireSound;
+	class USoundBase* mpSoundFire;
 
 	EGunType mGunType;
 
-	UWorld* mpWorld;
-
 	bool mCanShoot;
 
-	float mShootPeriod;
+	// Time between shootings
+	float mShootCoolDown;
 
+	// Will determine with what the projectile should collide
 	FName mProjectileCollisionProfile;
 
 public:
@@ -43,18 +41,24 @@ public:
 	// Sets default values for this actor's properties
 	AGun();
 
-	UFUNCTION()
-	void EnableShooting();
-
-	UFUNCTION()
-	void AttachToPawn(APawn* pawn, const FTransform& relativeT);
-
+	// Getters and setters
 	UFUNCTION()
 	EGunType GetGunType() const { return mGunType; }
 
+	// Also sets material parameters
 	UFUNCTION(BlueprintCallable)
 	void SetGunType(const EGunType type);
 
+	// Will attach this gun to pPawn with crRelativeT transform
+	UFUNCTION(BlueprintCallable)
+	void AttachToPawn(APawn* pPawn, const FTransform& crRelativeT);
+
+	// Spawn some projectile depending on gun type
 	UFUNCTION()
 	void Shoot();
+
+	// After cooldown
+	UFUNCTION()
+	void EnableShooting();
+
 };

@@ -24,7 +24,7 @@ class PORTIFOLIO_API ACollectable : public AActor
 protected:
 	UPROPERTY(Category = Assets, VisibleDefaultsOnly, BlueprintReadWrite)
 	class UStaticMeshComponent* mpMeshComponent;
-	
+
 	UPROPERTY(Category = Assets, VisibleDefaultsOnly, BlueprintReadWrite)
 	class UMaterialInstanceDynamic* mpMID;
 
@@ -34,9 +34,12 @@ public:
 	// Sets default values for this actor's properties
 	ACollectable();
 
+	virtual void OnConstruction(const FTransform& crT) override;
+
+	// Getter and Setter
 	ECollectableType GetType() { return mType; }
 
+	// Also sets material parameters
+	UFUNCTION()
 	void SetCollectableType(ECollectableType type);
-
-	static ACollectable* SpawnRandomCollectable(UWorld* world, const FTransform& t);
 };
