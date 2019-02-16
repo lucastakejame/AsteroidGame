@@ -73,15 +73,18 @@ public:
 	AWaveManager();
 
 	// Clean arrays
+	UFUNCTION(BlueprintCallable)
 	void CleanTargets();
 
+	UFUNCTION(BlueprintCallable)
 	void CleanCollectables();
 
 	// Start game
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void StartWaves();
 
 	// spawn wave n
+	UFUNCTION(BlueprintCallable)
 	void SpawnWave(int32 n);
 
 	// Sets currentWave to 0
@@ -99,7 +102,7 @@ public:
 	// Spawning methods
 	// Roll a dice and see if it should spawn an enemy
 	// If succeeded: Spawn enemy at random location, add it to array and make binding
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void TryToSpawnEnemy();
 
 	// Spawn asteroid at transform, add it to array and make binding
