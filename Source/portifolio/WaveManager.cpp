@@ -24,7 +24,7 @@ AWaveManager::AWaveManager() : mCurrentWave(0)
 
 	mpClassAsteroid = AAsteroid::StaticClass();
 	mpClassEnemy = AEnemyShip::StaticClass();
-	mpClassCollect = ACollectable::StaticClass();
+	mpClassCollect.Add(ACollectable::StaticClass());
 	mpClassGun = AGun::StaticClass();
 
 	mEnemySpawnInterval = 10.f;
@@ -312,7 +312,7 @@ void AWaveManager::HandleAsteroidDestruction(ATarget* pTarg)
 			// Chance of spawning a collectable
 			if (IsValid(GetWorld()) && FMath::FRand() <= mChanceAsteroidDropCollectable)
 			{
-				FTransform t = FTransform(pAsteroid->GetActorRotation(), pAsteroid->GetActorLocation());
+				FTransform t = FTransform( pAsteroid->GetActorLocation());
 
 				ACollectable* pC = SpawnRandomCollectable(t);
 
@@ -339,7 +339,7 @@ void AWaveManager::HandleEnemyDestruction(ATarget* pTarg)
 		// Chance of spawning a collectable
 		if (IsValid(GetWorld()) && FMath::FRand() <= mChanceEnemyDropCollectable)
 		{
-			ACollectable* pC = SpawnRandomCollectable(pTarg->GetActorTransform());
+			ACollectable* pC = SpawnRandomCollectable(FTransform(pTarg->GetActorLocation()) );
 
 			if(IsValid(pC)) mArrayCollectables.Add(pC);
 		}
@@ -405,23 +405,12 @@ ACollectable* AWaveManager::SpawnRandomCollectable(const FTransform& crT)
 {
 	ACollectable* pResult = nullptr;
 
-	mpClassGun = (IsValid(mpClassGun)) ? mpClassGun : AGun::StaticClass();
-	mpClassCollect = (IsValid(mpClassCollect)) ? mpClassCollect : ACollectable::StaticClass();
+	TSubclassOf<ACollectable> pSpawnClass = mpClassCollect[FMath::Rand() % mpClassCollect.Num()];
 
-	if (IsValid(GetWorld()))
+	if (IsValid(pSpawnClass))
 	{
-		uint8 collecType = FMath::Rand() % int32(ECollectableType::EnumSize);
-
-		if (ECollectableType(collecType) == ECollectableType::Gun)
-		{
-			pResult = GetWorld()->SpawnActor<AGun>(mpClassGun, crT);
-			((AGun*)pResult)->SetGunType((EGunType)(FMath::Rand() % int32(EGunType::EnumSize)));
-		}
-		else
-		{
-			pResult = GetWorld()->SpawnActor<ACollectable>(mpClassCollect, crT);
-			pResult->SetCollectableType((ECollectableType)collecType);
-		}
+		pResult = GetWorld()->SpawnActor<ACollectable>(pSpawnClass, crT);
 	}
+
 	return pResult;
 }

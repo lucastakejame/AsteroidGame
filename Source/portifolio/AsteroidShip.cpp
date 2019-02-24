@@ -153,7 +153,6 @@ void AAsteroidShip::SetPauseGame_Implementation(bool isPaused)
 
 void AAsteroidShip::OnHit(UPrimitiveComponent* pHitComp, AActor* pOtherActor, UPrimitiveComponent* pOtherComp, FVector normalImpulse, const FHitResult& crHit)
 {
-	log("HIT")
 	if (pOtherActor
 		&& pOtherActor->ActorHasTag(FName("doesDamage"))
 		&& !mIsDead) // Without this, its possible to receive a second collision before collision is disabled
@@ -165,37 +164,11 @@ void AAsteroidShip::OnHit(UPrimitiveComponent* pHitComp, AActor* pOtherActor, UP
 
 void AAsteroidShip::OnOverlap(UPrimitiveComponent* pOverlappedComponent, AActor* pOtherActor, UPrimitiveComponent* pOtherComp, int32 otherBodyIndex, bool isFromSweep, const FHitResult& crSweepResult)
 {
-	log("OVERLAP")
-	AGun* pGun = Cast<AGun>(pOtherActor);
-
-	// TODO: Maybe make a interface to deal with this interaction
 	ACollectable* pCollec = Cast<ACollectable>(pOtherActor);
 
-	if (IsValid(pGun))
+	if (IsValid(pCollec))
 	{
-		if (IsValid(mpGun)) mpGun->Destroy();
-		mpGun = pGun;
-		pGun->AttachToPawn(this, FTransform(FRotator(0, 0, 0), FVector(90, 0, 0)));
-	}
-	else if (IsValid(pCollec))
-	{
-		switch (pCollec->GetType())
-		{
-		case ECollectableType::ExtraLife:
-		{
-			AddLife();
-		}
-		break;
-		case ECollectableType::ControlBoost:
-		{
-			mStats.mLinearAccel = 2.*mInitialStats.mLinearAccel;
-			mStats.mAngularAccel = 1.4*mInitialStats.mMaxAngularSpeed;
-		}
-		break;
-		default:
-			break;
-		}
-		pCollec->Destroy();
+		pCollec->ApplyEffect(this);
 	}
 }
 
@@ -225,14 +198,14 @@ void AAsteroidShip::UpdateShip(float deltaTime)
 	AddActorWorldRotation(FRotator(0., mAngularSpeed * deltaTime, 0.));
 
 	// Handle translation
-	if (cForwardValue > 0.f)
+	if (cForwardValue != 0.f)
 	{
 		if (!mpAudioComponentThrust->IsPlaying())
 		{
 			mpAudioComponentThrust->Play();
 		}
 
-		mLinearVelocity = mLinearVelocity + GetActorForwardVector() * mStats.mLinearAccel * deltaTime;
+		mLinearVelocity = mLinearVelocity + cForwardValue * GetActorForwardVector() * mStats.mLinearAccel * deltaTime;
 		mLinearVelocity = mLinearVelocity.GetClampedToMaxSize(mStats.mMaxLinearSpeed * deltaTime);
 	}
 	else

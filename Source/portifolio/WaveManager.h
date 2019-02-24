@@ -36,7 +36,7 @@ private:
 	TSubclassOf<AEnemyShip> mpClassEnemy;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<ACollectable> mpClassCollect;
+	TArray<TSubclassOf<class ACollectable>> mpClassCollect;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AGun> mpClassGun;

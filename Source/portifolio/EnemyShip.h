@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Target.h"
+#include "Gun.h"
 #include "EnemyShip.generated.h"
 
 /**
@@ -46,6 +47,20 @@ public:
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float deltaTime) override;
+
+	// Getter & setter
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+		FORCEINLINE AGun* GetGun() const { return mpGun; }
+
+	void SetGun(AGun* pGun)
+	{
+		if (IsValid(pGun))
+		{
+			if (IsValid(mpGun)) mpGun->Destroy();
+			mpGun = pGun;
+		}
+	}
 
 	// Handle getting collector
 	UFUNCTION()

@@ -8,7 +8,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
-#include "Gun.h"
+#include "Collectable.h"
 #include "AsteroidShip.h"
 #include "DebugUtils.h"
 
@@ -77,14 +77,11 @@ void AEnemyShip::Tick(float deltaTime)
 
 void AEnemyShip::OnOverlap(UPrimitiveComponent* pOverlappedComponent, AActor* pOtherActor, UPrimitiveComponent* pOtherComp, int32 otherBodyIndex, bool isFromSweep, const FHitResult & crSweepResult)
 {
-	AGun* pGun = Cast<AGun>(pOtherActor);
+	ACollectable* pCollect = Cast<ACollectable>(pOtherActor);
 
-	if (IsValid(pGun))
+	if (IsValid(pCollect))
 	{
-		if (IsValid(mpGun)) mpGun->Destroy();
-
-		mpGun = pGun;
-		pGun->AttachToPawn(this, FTransform(FRotator(0, 0, 0), FVector(90, 0, 0)));
+		pCollect->ApplyEffect(this);
 	}
 }
 
