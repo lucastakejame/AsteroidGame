@@ -170,6 +170,15 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 		FORCEINLINE bool GetIsShooting() const { return mIsShooting; }
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+		FORCEINLINE FAsteroidShipStats GetStats() const { return mStats; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+		FORCEINLINE FAsteroidShipStats GetInitialStats() const { return mInitialStats; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+		FORCEINLINE AGun* GetGun() const { return mpGun; }
+
 	// Called every frame
 	virtual void Tick(float deltaTime) override;
 
@@ -188,9 +197,22 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void TogglePauseGame();
 
+
+	// Setters
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void SetPauseGame(bool isPaused);
 	void SetPauseGame_Implementation(bool isPaused);
+
+	void SetStats(FAsteroidShipStats stats) { mStats = stats; }
+	
+	void SetGun(AGun* pGun)
+	{
+		if (IsValid(pGun))
+		{
+			if (IsValid(mpGun)) mpGun->Destroy();
+			mpGun = pGun;
+		}
+	}
 
 
 	// Handling encounters
