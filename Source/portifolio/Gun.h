@@ -53,6 +53,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AttachToPawn(APawn* pPawn, const FTransform& crRelativeT);
 
+	// Attach to pawn in pre-determined relative transform
+	virtual void ApplyEffect(APawn* pAffectedPawn) override;
+
 	// Spawn some projectile depending on gun type
 	UFUNCTION()
 	void Shoot();

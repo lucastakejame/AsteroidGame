@@ -36,6 +36,9 @@ public:
 
 	virtual void OnConstruction(const FTransform& crT) override;
 
+	// Same thing as a abstract method
+	virtual void ApplyEffect(APawn* pAffectedPawn) { check(0 && "You must override this"); }
+
 	// Getter and Setter
 	ECollectableType GetType() { return mType; }
 

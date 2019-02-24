@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Pawn.h"
 #include "AsteroidShip.h"
+#include "EnemyShip.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 #include "DebugUtils.h"
@@ -83,6 +84,26 @@ void AGun::AttachToPawn(APawn* pPawn, const FTransform& crRelativeT)
 
 	mProjectileCollisionProfile = (Cast<AAsteroidShip>(pPawn)) ? "PlayerProjectile" : "TargetProjectile";
 }
+
+
+void AGun::ApplyEffect(APawn* pAffectedPawn)
+{
+	AAsteroidShip* pA = Cast<AAsteroidShip>(pAffectedPawn);
+	AEnemyShip* pE = Cast<AEnemyShip>(pAffectedPawn);
+
+	// Note(Lucas): If Other classes use guns, its better to make an interface 
+	if (IsValid(pA))
+	{
+		pA->SetGun(this);
+	}
+	else if (IsValid(pE))
+	{
+		pE->SetGun(this);
+	}
+
+	AttachToPawn(pAffectedPawn, FTransform(FRotator(0, 0, 0), FVector(90, 0, 0)));
+}
+
 
 void AGun::Shoot()
 {
