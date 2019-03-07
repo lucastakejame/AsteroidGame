@@ -26,28 +26,32 @@ private:
 	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class USoundBase* mpSoundFire;
 
-	EGunType mGunType;
-
-	bool mCanShoot;
+protected:
 
 	// Time between shootings
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float mShootCoolDown;
 
 	// Will determine with what the projectile should collide
 	FName mProjectileCollisionProfile;
+	
+	// Keeps track if gun is on cooldown or not
+	bool mCanShoot;
+
+	// Gun type identifier
+	EGunType mGunType;
+
+	// Marks last time a shoot was successful, used when checking if its ok to shoot again.
+	float mLastTimeShot = 0;
 
 public:
 
 	// Sets default values for this actor's properties
 	AGun();
-
+		
 	// Getters and setters
 	UFUNCTION()
 	EGunType GetGunType() const { return mGunType; }
-
-	// Also sets material parameters
-	UFUNCTION(BlueprintCallable)
-	void SetGunType(const EGunType type);
 
 	// Will attach this gun to pPawn with crRelativeT transform
 	UFUNCTION(BlueprintCallable)
@@ -56,9 +60,9 @@ public:
 	// Attach to pawn in pre-determined relative transform
 	virtual void ApplyEffect(APawn* pAffectedPawn) override;
 
-	// Spawn some projectile depending on gun type
-	UFUNCTION()
-	void Shoot();
+	// Spawn some projectile depending on gun type and if not on cooldown
+	UFUNCTION(BlueprintCallable)
+	virtual void Shoot();
 
 	// After cooldown
 	UFUNCTION()

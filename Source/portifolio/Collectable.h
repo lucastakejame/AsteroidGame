@@ -25,16 +25,16 @@ protected:
 	UPROPERTY(Category = Assets, VisibleDefaultsOnly, BlueprintReadWrite)
 	class UStaticMeshComponent* mpMeshComponent;
 
-	UPROPERTY(Category = Assets, VisibleDefaultsOnly, BlueprintReadWrite)
-	class UMaterialInstanceDynamic* mpMID;
-
 	ECollectableType mType;
 
 public:
 	// Sets default values for this actor's properties
 	ACollectable();
 
-	virtual void OnConstruction(const FTransform& crT) override;
+	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void SetCollisionToCollectable();
 
 	// Same thing as a abstract method
 	virtual void ApplyEffect(APawn* pAffectedPawn) { check(0 && "You must override this"); }
@@ -42,7 +42,11 @@ public:
 	// Getter and Setter
 	ECollectableType GetType() { return mType; }
 
-	// Also sets material parameters
+	// Setter
 	UFUNCTION()
-	void SetCollectableType(ECollectableType type);
+	void SetCollectableType(ECollectableType type)
+	{
+		mType = type;
+	}
+
 };

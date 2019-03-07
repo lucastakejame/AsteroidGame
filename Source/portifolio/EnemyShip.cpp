@@ -11,6 +11,8 @@
 #include "Collectable.h"
 #include "AsteroidShip.h"
 #include "DebugUtils.h"
+#include "Gun.h"
+#include "SlowGun.h"
 
 AEnemyShip::AEnemyShip() : ATarget()
 {
@@ -29,6 +31,10 @@ AEnemyShip::AEnemyShip() : ATarget()
 
 	// It'll be used to collect guns
 	mpMeshComponent->OnComponentBeginOverlap.AddDynamic(this, &AEnemyShip::OnOverlap);
+
+	// Default gun type
+	mInitialGunClass = ASlowGun::StaticClass();
+
 
 	mHitPoints = 150;
 	mScoreValue = 400;
@@ -55,9 +61,8 @@ void AEnemyShip::BeginPlay()
 		// Random initial delay so they don't sync up shooting necessarily
 		pW->GetTimerManager().SetTimer(th2, this, &AEnemyShip::Shoot, mShootingCoolDown, true, FMath::FRand()*2.);
 
-		mpGun = pW->SpawnActor<AGun>(AGun::StaticClass(), GetActorTransform());
-		mpGun->AttachToPawn(this, FTransform( FRotator(0, 0, 0), FVector(90, 0, 0) ) );
-		mpGun->SetGunType(EGunType::SlowGun);
+		AGun* pGun = GetWorld()->SpawnActor<AGun>(mInitialGunClass);
+		if (IsValid(pGun)) pGun->ApplyEffect(this);
 	}
 }
 
@@ -74,6 +79,22 @@ void AEnemyShip::Tick(float deltaTime)
 	// Move
 	mpMeshComponent->AddImpulse(GetActorForwardVector()*mImpulseMultiplier, NAME_None, true);
 }
+
+
+void AEnemyShip::Destroyed()
+{
+	if (IsValid(mpGun)) mpGun->Destroy();
+}
+
+void AEnemyShip::SetGun(AGun* pGun)
+{
+	if (IsValid(pGun) && pGun != mpGun)
+	{
+		if (IsValid(mpGun)) mpGun->Destroy();
+		mpGun = pGun;
+	}
+}
+
 
 void AEnemyShip::OnOverlap(UPrimitiveComponent* pOverlappedComponent, AActor* pOtherActor, UPrimitiveComponent* pOtherComp, int32 otherBodyIndex, bool isFromSweep, const FHitResult & crSweepResult)
 {
@@ -98,7 +119,6 @@ void AEnemyShip::Shoot()
 
 	if (IsValid(mpGun) && IsValid(pAsteroidShip) && pAsteroidShip->CanTakeDamage())
 	{
-
 		FVector shipLoc = pAsteroidShip->GetActorLocation();
 
 		// Aim on player and add eccentricity random vector to maybe miss shot

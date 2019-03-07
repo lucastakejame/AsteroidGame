@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "DamageInterface.h"
-#include "Gun.h"
 #include "AsteroidShip.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FNoParamSignature);
@@ -23,7 +22,7 @@ struct FAsteroidShipStats
 	float mMaxLinearSpeed = 1000;
 
 	// max rotation speed in degrees/s
-	UPROPERTY(Category = SHOWEY, EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	float mMaxAngularSpeed = 200;
 
 	// acceleration applied in cm/s²
@@ -33,10 +32,6 @@ struct FAsteroidShipStats
 	// acceleration applied in degrees/s²
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	float mAngularAccel = 15;
-
-	// gun equiped
-	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
-	EGunType mGunType = EGunType::NormalGun;
 };
 
 UCLASS(BlueprintType, Blueprintable)
@@ -59,10 +54,14 @@ private:
 
 	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class USoundBase* mpSoundExplosion;
-
+	
 	// view target
 	UPROPERTY(Category = View, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class ACameraActor* mpCamViewTarget;
+
+	// view target
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AGun> mInitialGunClass;
 
 	// Initial values for settings
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -185,6 +184,9 @@ public:
 	// input binding
 	virtual void SetupPlayerInputComponent(class UInputComponent* pPlayerInputComponent) override;
 
+	//Clear gun reference
+	virtual void Destroyed() override;
+
 	// input triggered methods
 	void EnableShooting();
 	void DisableShooting();
@@ -205,15 +207,7 @@ public:
 
 	void SetStats(FAsteroidShipStats stats) { mStats = stats; }
 	
-	void SetGun(AGun* pGun)
-	{
-		if (IsValid(pGun))
-		{
-			if (IsValid(mpGun)) mpGun->Destroy();
-			mpGun = pGun;
-		}
-	}
-
+	void SetGun(AGun* pGun);
 
 	// Handling encounters
 	// These HAD to be called OnHit and OnOverlap otherwise unreal wouldn't callback

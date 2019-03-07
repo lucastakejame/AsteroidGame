@@ -26,48 +26,28 @@ ACollectable::ACollectable()
 	if (sAssetMesh.Succeeded()) mpMeshComponent->SetStaticMesh(sAssetMesh.Object);
 	if (sAssetMaterial.Succeeded()) mpMeshComponent->SetMaterial(0, sAssetMaterial.Object);
 
-	mpMeshComponent->SetCollisionProfileName("Collectable");
+	// Starts with no collision so it won't trigger an overlap when being spawned inside another actor
+	// e.g. spawned by AAsteroidShip and equipped right after
+	mpMeshComponent->SetCollisionProfileName("NoCollision");
 	mpMeshComponent->SetGenerateOverlapEvents(true);
 
 	mType = ECollectableType::ExtraLife;
 
+	InitialLifeSpan = 5.;
+
 }
 
-void ACollectable::OnConstruction(const FTransform& crT)
+void ACollectable::BeginPlay()
 {
-	mpMID = mpMeshComponent->CreateDynamicMaterialInstance(0, mpMeshComponent->GetMaterial(0));
+	FTimerHandle th;
+	GetWorldTimerManager().SetTimer(th, this, &ACollectable::SetCollisionToCollectable, .1, false);
 }
 
-void ACollectable::SetCollectableType(ECollectableType type)
+void ACollectable::SetCollisionToCollectable()
 {
-	mType = type;
-
-	switch (type)
+	// If its not owned by anybody yet, can be collected
+	if (!IsValid(GetOwner()))
 	{
-		case ECollectableType::ExtraLife:
-		{
-			if (mpMID)
-			{
-				mpMID->SetVectorParameterValue("color0", FLinearColor(FVector4(.8, .8, .8, 1)));
-				mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(0, 1, 0, 1)));
-			}
-		}
-		break;
-		case ECollectableType::ControlBoost:
-		{
-			if (mpMID)
-			{
-				mpMID->SetVectorParameterValue("color0", FLinearColor(FVector4(.8, .8, .8, 1)));
-				mpMID->SetVectorParameterValue("color1", FLinearColor(FVector4(0, 0, 1, 1)));
-			}
-		}
-		break;
-		case ECollectableType::Gun:
-		{
-			// Gun will set these parameters on construction
-		}
-		break;
-		default:
-		break;
+		mpMeshComponent->SetCollisionProfileName("Collectable");
 	}
 }

@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Target.h"
-#include "Gun.h"
 #include "EnemyShip.generated.h"
 
 /**
@@ -21,6 +20,10 @@ private:
 
 	// gun used to shoot player
 	class AGun* mpGun = nullptr;
+
+	// time before changing movement direction again
+	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AGun> mInitialGunClass;
 
 	// time before changing movement direction again
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -48,19 +51,14 @@ public:
 
 	virtual void Tick(float deltaTime) override;
 
+	virtual void Destroyed() override;
+
 	// Getter & setter
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-		FORCEINLINE AGun* GetGun() const { return mpGun; }
+	FORCEINLINE AGun* GetGun() const { return mpGun; }
 
-	void SetGun(AGun* pGun)
-	{
-		if (IsValid(pGun))
-		{
-			if (IsValid(mpGun)) mpGun->Destroy();
-			mpGun = pGun;
-		}
-	}
+	void SetGun(AGun* pGun);
 
 	// Handle getting collector
 	UFUNCTION()

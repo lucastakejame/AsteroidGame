@@ -24,8 +24,6 @@ AWaveManager::AWaveManager() : mCurrentWave(0)
 
 	mpClassAsteroid = AAsteroid::StaticClass();
 	mpClassEnemy = AEnemyShip::StaticClass();
-	mpClassCollect.Add(ACollectable::StaticClass());
-	mpClassGun = AGun::StaticClass();
 
 	mEnemySpawnInterval = 10.f;
 
@@ -405,8 +403,26 @@ ACollectable* AWaveManager::SpawnRandomCollectable(const FTransform& crT)
 {
 	ACollectable* pResult = nullptr;
 
-	TSubclassOf<ACollectable> pSpawnClass = mpClassCollect[FMath::Rand() % mpClassCollect.Num()];
+	TSubclassOf<ACollectable> pSpawnClass;
 
+	// Sums chances weights to get random max value
+	float chanceSum = 0;
+	for (auto p : mMapCollectChance){ chanceSum += p.Value;}
+
+	float rand = FMath::FRandRange(0, chanceSum);
+
+	// Check which class the random value picked
+	chanceSum = 0;
+	for (auto p : mMapCollectChance)
+	{
+		chanceSum += p.Value;
+		if (rand <= chanceSum)
+		{
+			pSpawnClass = p.Key;
+			break;
+		}
+	}
+	
 	if (IsValid(pSpawnClass))
 	{
 		pResult = GetWorld()->SpawnActor<ACollectable>(pSpawnClass, crT);

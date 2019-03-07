@@ -28,19 +28,17 @@ private:
 	UPROPERTY()
 	TArray<class ACollectable*> mArrayCollectables;
 
-	// Class of spawned stuff
+	// Classes of spawned stuff
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AAsteroid> mpClassAsteroid;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AEnemyShip> mpClassEnemy;
 
+	// maps which collectable class is spawnable and the chance weight
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	TArray<TSubclassOf<class ACollectable>> mpClassCollect;
-
-	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class AGun> mpClassGun;
-
+	TMap< TSubclassOf<class ACollectable>, float> mMapCollectChance;
+	
 	UPROPERTY()
 	FTimerHandle mTimerHandleEnemySpawn;
 

@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraActor.h"
 #include "Gun.h"
+#include "NormalGun.h"
 #include "Collectable.h"
 
 #include "DebugUtils.h"
@@ -52,6 +53,8 @@ AAsteroidShip::AAsteroidShip()
 	if(sAssetSoundFire.Succeeded()) mpSoundFire = sAssetSoundFire.Object;
 	if(sAssetSoundExplosion.Succeeded()) mpSoundExplosion = sAssetSoundExplosion.Object;
 
+	mInitialGunClass = ANormalGun::StaticClass();
+
 	// this lives in z = 0
 	mpMeshComponentShip->SetEnableGravity(false);
 
@@ -70,8 +73,6 @@ AAsteroidShip::AAsteroidShip()
 void AAsteroidShip::BeginPlay()
 {
 	Super::BeginPlay();
-
-	ResetShipToBeginState();
 
 	// Changing view target to TopDown camera
 	UGameplayStatics::GetPlayerController(this, 0)->SetViewTarget(mpCamViewTarget);
@@ -112,6 +113,12 @@ void AAsteroidShip::SetupPlayerInputComponent(UInputComponent* pPlayerInputCompo
 
 }
 
+
+void AAsteroidShip::Destroyed()
+{
+	if (IsValid(mpGun)) mpGun->Destroy();
+}
+
 void AAsteroidShip::EnableShooting()
 {
 	mIsShooting = true;
@@ -150,6 +157,17 @@ void AAsteroidShip::SetPauseGame_Implementation(bool isPaused)
 	mIsPaused = isPaused;
 	UGameplayStatics::SetGamePaused(this, isPaused);
 }
+
+void AAsteroidShip::SetGun(AGun* pGun)
+{
+	if (IsValid(pGun) && pGun != mpGun)
+	{
+		if (IsValid(mpGun)) mpGun->Destroy();
+		mpGun = pGun;
+	}
+}
+
+
 
 void AAsteroidShip::OnHit(UPrimitiveComponent* pHitComp, AActor* pOtherActor, UPrimitiveComponent* pOtherComp, FVector normalImpulse, const FHitResult& crHit)
 {
@@ -252,16 +270,11 @@ void AAsteroidShip::ResetShipToReviveState()
 	mLinearVelocity = FVector(0, 0, 0);
 
 	// Reset to initial gun
-
-	if (IsValid(mpGun)) mpGun->Destroy();
-
-	mpGun = GetWorld()->SpawnActor<AGun>(AGun::StaticClass());
-	if (mpGun)
-	{
-		mpGun->SetGunType(mInitialStats.mGunType);
-		mpGun->AttachToPawn(this, FTransform(FRotator(0, 0, 0), FVector(90, 0, 0)));
-	}
-
+	FActorSpawnParameters sp;
+	AGun* pGun = GetWorld()->SpawnActor<AGun>(mInitialGunClass, sp);
+	
+	// Attaching gun to this player
+	if (IsValid(pGun)) pGun->ApplyEffect(this);
 }
 
 void AAsteroidShip::SubtractLife()
