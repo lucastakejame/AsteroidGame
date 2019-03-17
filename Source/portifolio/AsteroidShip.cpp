@@ -15,21 +15,12 @@
 
 #include "DebugUtils.h"
 
-const FName AAsteroidShip::mscBindingNameMoveForward("MoveForward");
-const FName AAsteroidShip::mscBindingNameRotateRight("MoveRight");
-const FName AAsteroidShip::mscBindingNameShoot("Shoot");
-const FName AAsteroidShip::mscBindingNameQuickTurn("QuickTurn");
-const FName AAsteroidShip::mscBindingNameCursorUp("CursorUp");
-const FName AAsteroidShip::mscBindingNameCursorDown("CursorDown");
-const FName AAsteroidShip::mscBindingNamePause("Pause");
-
 
 // Sets default values
 AAsteroidShip::AAsteroidShip()
 {
  	// Player needs to tick when paused to process input and be able to leave paused state
 	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.bTickEvenWhenPaused = true;
 
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
@@ -76,43 +67,17 @@ void AAsteroidShip::BeginPlay()
 
 	// Changing view target to TopDown camera
 	UGameplayStatics::GetPlayerController(this, 0)->SetViewTarget(mpCamViewTarget);
-
-	// Starting with menu opened and game paused
-	SetPauseGame(true);
-
 }
 
 void AAsteroidShip::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
 
-	if (!mIsPaused && !mIsDead)
+	if (!mIsDead)
 	{
 		UpdateShip(deltaTime);
 	}
 }
-
-// Called to bind functionality to input
-void AAsteroidShip::SetupPlayerInputComponent(UInputComponent* pPlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(pPlayerInputComponent);
-
-	// axis key bindings
-	pPlayerInputComponent->BindAxis(mscBindingNameMoveForward);
-	pPlayerInputComponent->BindAxis(mscBindingNameRotateRight);
-
-	// actions key bindings
-	pPlayerInputComponent->BindAction(mscBindingNameShoot, EInputEvent::IE_Pressed, this, &AAsteroidShip::EnableShooting).bExecuteWhenPaused = true;
-	pPlayerInputComponent->BindAction(mscBindingNameShoot, EInputEvent::IE_Released, this, &AAsteroidShip::DisableShooting).bExecuteWhenPaused = true;
-
-	pPlayerInputComponent->BindAction(mscBindingNameQuickTurn, EInputEvent::IE_Pressed, this, &AAsteroidShip::TurnQuickly).bExecuteWhenPaused = true;
-	pPlayerInputComponent->BindAction(mscBindingNameCursorUp, EInputEvent::IE_Pressed, this, &AAsteroidShip::NotifyUpPress).bExecuteWhenPaused = true;
-	pPlayerInputComponent->BindAction(mscBindingNameCursorDown, EInputEvent::IE_Pressed, this, &AAsteroidShip::NotifyDownPress).bExecuteWhenPaused = true;
-
-	pPlayerInputComponent->BindAction(mscBindingNamePause, EInputEvent::IE_Pressed, this, &AAsteroidShip::TogglePauseGame).bExecuteWhenPaused = true;
-
-}
-
 
 void AAsteroidShip::Destroyed()
 {
@@ -122,8 +87,6 @@ void AAsteroidShip::Destroyed()
 void AAsteroidShip::EnableShooting()
 {
 	mIsShooting = true;
-
-	mOnCursorConfirmation.Broadcast();
 }
 
 void AAsteroidShip::DisableShooting()
@@ -131,31 +94,9 @@ void AAsteroidShip::DisableShooting()
 	mIsShooting = false;
 }
 
-void AAsteroidShip::NotifyUpPress()
-{
-	mOnCursorUp.Broadcast();
-}
-
-void AAsteroidShip::NotifyDownPress()
-{
-	mOnCursorDown.Broadcast();
-}
-
 void AAsteroidShip::TurnQuickly()
 {
 	AddActorWorldRotation(FRotator(0, 180, 0));
-}
-
-void AAsteroidShip::TogglePauseGame()
-{
-	mIsPaused = !mIsPaused;
-	SetPauseGame(mIsPaused);
-}
-
-void AAsteroidShip::SetPauseGame_Implementation(bool isPaused)
-{
-	mIsPaused = isPaused;
-	UGameplayStatics::SetGamePaused(this, isPaused);
 }
 
 void AAsteroidShip::SetGun(AGun* pGun)
@@ -167,7 +108,15 @@ void AAsteroidShip::SetGun(AGun* pGun)
 	}
 }
 
+void AAsteroidShip::SetForwardValue(float val)
+{
+	mForwardValue = val;
+}
 
+void AAsteroidShip::SetRotatingValue(float val)
+{
+	mRotatingValue = val;
+}
 
 void AAsteroidShip::OnHit(UPrimitiveComponent* pHitComp, AActor* pOtherActor, UPrimitiveComponent* pOtherComp, FVector normalImpulse, const FHitResult& crHit)
 {
@@ -203,27 +152,23 @@ void AAsteroidShip::UpdateShip(float deltaTime)
 		SetActorHiddenInGame(false);
 	}
 
-	// Reading player input, in range [-1.f, 1.f]
-	const float cForwardValue = GetInputAxisValue(mscBindingNameMoveForward);
-	const float cRotatingValue = GetInputAxisValue(mscBindingNameRotateRight);
-
 	// Handle rotation
-	mAngularSpeed = (cRotatingValue == 0.) ? 0 :
-		FMath::Clamp<float>(mAngularSpeed + cRotatingValue * mStats.mAngularAccel,
+	mAngularSpeed = (mRotatingValue == 0.) ? 0 :
+		FMath::Clamp<float>(mAngularSpeed + mRotatingValue * mStats.mAngularAccel,
 			-mStats.mMaxAngularSpeed,
 			mStats.mMaxAngularSpeed);
 
 	AddActorWorldRotation(FRotator(0., mAngularSpeed * deltaTime, 0.));
 
 	// Handle translation
-	if (cForwardValue != 0.f)
+	if (mForwardValue != 0.f)
 	{
 		if (!mpAudioComponentThrust->IsPlaying())
 		{
 			mpAudioComponentThrust->Play();
 		}
 
-		mLinearVelocity = mLinearVelocity + cForwardValue * GetActorForwardVector() * mStats.mLinearAccel * deltaTime;
+		mLinearVelocity = mLinearVelocity + mForwardValue * GetActorForwardVector() * mStats.mLinearAccel * deltaTime;
 		mLinearVelocity = mLinearVelocity.GetClampedToMaxSize(mStats.mMaxLinearSpeed * deltaTime);
 	}
 	else
@@ -234,7 +179,7 @@ void AAsteroidShip::UpdateShip(float deltaTime)
 	AddActorWorldOffset(mLinearVelocity);
 
 	// Handle shooting
-	if (mIsShooting && !mIsDead)
+	if (mIsShooting)
 	{
 		Shoot();
 	}
@@ -326,7 +271,7 @@ void AAsteroidShip::FinishDeathCooldown()
 	}
 	else
 	{
-		mOnDeath.Broadcast();
+		mOnLivesEnded.Broadcast();
 	}
 
 }

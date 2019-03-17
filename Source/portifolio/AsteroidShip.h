@@ -110,21 +110,16 @@ private:
 	UPROPERTY()
 	bool mIsShooting;
 
-	// is game paused
+	// normalized value used to thrust forward
 	UPROPERTY()
-	bool mIsPaused;
+	float mForwardValue;
 
+	// normalized value used to rotate
+	UPROPERTY()
+	float mRotatingValue;
+	
 	// timer to count death and ghost time
 	FTimerHandle mTimerHandleDeathCooldown;
-
-	// input binding names
-	static const FName mscBindingNameMoveForward;
-	static const FName mscBindingNameRotateRight;
-	static const FName mscBindingNameShoot;
-	static const FName mscBindingNameQuickTurn;
-	static const FName mscBindingNameCursorUp;
-	static const FName mscBindingNameCursorDown;
-	static const FName mscBindingNamePause;
 
 protected:
 	// Called when the game starts or when spawned
@@ -132,18 +127,9 @@ protected:
 
 public:
 
-	// Delegates start with On and follows the action that triggered it
+	// Delegates
 	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
-	FNoParamSignature mOnCursorUp;
-
-	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
-	FNoParamSignature mOnCursorDown;
-
-	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
-	FNoParamSignature mOnCursorConfirmation;
-
-	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
-	FNoParamSignature mOnDeath;
+	FNoParamSignature mOnLivesEnded;
 
 	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
 	FOneIntSignature mOnScoreChange;
@@ -161,9 +147,6 @@ public:
 		FORCEINLINE bool GetIsDead() const { return mIsDead; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-		FORCEINLINE bool GetIsPaused() const { return mIsPaused; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
 		FORCEINLINE bool GetIsGhost() const { return mIsGhost; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
@@ -178,35 +161,37 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 		FORCEINLINE AGun* GetGun() const { return mpGun; }
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+		FORCEINLINE float GetForwardValue() const { return mForwardValue; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+		FORCEINLINE float GetRotatingValue() const { return mRotatingValue; }
+
 	// Called every frame
 	virtual void Tick(float deltaTime) override;
-
-	// input binding
-	virtual void SetupPlayerInputComponent(class UInputComponent* pPlayerInputComponent) override;
-
+	
 	//Clear gun reference
 	virtual void Destroyed() override;
 
-	// input triggered methods
+	UFUNCTION(BlueprintCallable)
 	void EnableShooting();
+	UFUNCTION(BlueprintCallable)
 	void DisableShooting();
-	void NotifyUpPress();
-	void NotifyDownPress();
-
-	UFUNCTION()
-	void TurnQuickly();
 
 	UFUNCTION(BlueprintCallable)
-	void TogglePauseGame();
+	void TurnQuickly();
 
 
 	// Setters
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void SetPauseGame(bool isPaused);
-	void SetPauseGame_Implementation(bool isPaused);
 
 	void SetStats(FAsteroidShipStats stats) { mStats = stats; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetForwardValue(float val);
 	
+	UFUNCTION(BlueprintCallable)
+	void SetRotatingValue(float val);
+
 	void SetGun(AGun* pGun);
 
 	// Handling encounters
