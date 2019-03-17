@@ -41,8 +41,13 @@ void ATarget::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Guarantee limit speed
-	mpMeshComponent->SetPhysicsLinearVelocity(mpMeshComponent->GetComponentVelocity().GetClampedToMaxSize(mLimitSpeed));
+	// NOTE(lucas): Hack to avoid situation of asteroids being with velocity 0 on the beginning
+	if (GetGameTimeSinceCreation() > .1)
+	{
+		// Guarantee limit speed
+		FVector clampSpeed = mpMeshComponent->GetComponentVelocity().GetClampedToMaxSize(mLimitSpeed);
+		mpMeshComponent->SetPhysicsLinearVelocity(clampSpeed);
+	}
 }
 
 void ATarget::ReceiveDamage_Implementation(APawn* pInstigator, float damage)
