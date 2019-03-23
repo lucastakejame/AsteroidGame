@@ -22,7 +22,6 @@ ACollectable::ACollectable()
 	// Adding component
 	mpMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CollectableMesh"));
 	RootComponent = mpMeshComponent;
-
 	if (sAssetMesh.Succeeded()) mpMeshComponent->SetStaticMesh(sAssetMesh.Object);
 	if (sAssetMaterial.Succeeded()) mpMeshComponent->SetMaterial(0, sAssetMaterial.Object);
 
@@ -39,6 +38,7 @@ ACollectable::ACollectable()
 
 void ACollectable::BeginPlay()
 {
+	Super::BeginPlay();
 	FTimerHandle th;
 	GetWorldTimerManager().SetTimer(th, this, &ACollectable::SetCollisionToCollectable, .1, false);
 }
