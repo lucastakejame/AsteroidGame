@@ -1,0 +1,230 @@
+Ideias asteroid
+
+Sistema de pontos
+Widgets
+    Inicial
+    Mensagenm
+    HUD
+        pontos
+        buffs e afins
+        vidas
+    LeaderBoard
+
+Coletáveis
+    bons
+        Vida
+        Tiro duplo
+        Escudo
+        Ataque em área
+        Breque
+
+    ruins
+        Tiro com momento linear (nave vai pra tras)
+        Asteroides colidem entre si
+
+Inimigos
+    Asteroids
+        OUMUAMUA (Aparece na wave 4.20 )
+            Se acertar a ponta flamejante aciona post processing chapado e fumaça
+    Naves
+        Devem atirar
+        colidir com o player só
+        se mover com thrusters
+
+Settings
+    Volume Musica
+    Volume SFX
+    Resolução
+
+
+Classes e funções
+    AsteroidShip
+        BP_AsteroidShip:
+            [x]mover
+            [x]atirar
+            [x]colidir
+            [x]morrer
+    WaveManager:
+        [x]Spawnar wave1
+        [x]Spawnar inimigos
+    Asteroid:
+        [x]mover
+        [x]colidir
+            [x]destruir ship
+        [x]dar pontos
+    portifolioProjectile:
+        [x]mover
+        [x]colidir
+    ScreenLimitManager:
+        [x]Manter atores em limites
+    W_HUD:
+        [x]Mostrar Pontos
+        [x]Mostrar Vidas
+        [x]Mostrar Mensagens
+    W_Menu:
+        [x]Start Game/Continue Game
+        []Settings
+
+        [x]Exit
+    BP_EnemyShip:
+        [x]Mover
+        [x]Atirar
+        [x]Dar pontos
+
+Interfaces
+    DamageInterface
+
+Adequar aos padrões de código da unreal
+https://docs.unrealengine.com/en-US/Programming/Development/CodingStandard
+pelo menos os consts...
+
+
+MileStones
+    [X]MVP
+    []Complete Functionality
+        [X] 5 Waves
+        [X] 3 Shoot modifiers
+            [X] double
+            [X] slow
+            [X] fractal
+        [] Collectables
+            [X] extra life
+            [X] control
+            [] Freeze asteroids in place
+            [] Mario star -> destroy everything it touches
+            [] parry (tiro expande uma esfera em torno do player, um pouco só, se pegar asteroid ai da dano)
+        [] 3 Enemy ships
+        [] 1 BOSS
+
+
+Aparencia e sons
+    Targets
+        [X]explosion
+        Asteroids
+        enemies
+            []spawning
+    AsteroidShip
+        []Escudo
+        []Perry (apertando pra tras no momento de uma colisão a nave quicka o objeto)
+        [X]thrust
+    Collectables
+        []collected
+        Arma
+            [X]Shoot
+
+Tasks:
+    Homogenize
+        Private: All members except delegates (To be consistent with other unreal actors)
+        Protected: Variables shared with class childs
+        public: All functions and delegates
+
+        Prefixes for variables:
+            m for members
+            s for statics
+            c for constants
+            p for pointers
+            r for references
+            i for index
+            it for iterator
+
+        Component names goes first (e.g. mpMeshComponentShip) then the specialization.
+
+        Getters and setters : GetVarName() SetVarName()
+        for others:
+            bool returning functions: is, has
+            other value returning functions : get
+            void returning functions: Action
+
+        Function declaration and definition in the same order of appearance
+        Comments
+
+
+Possible organization
+    Break asteroidShip in
+        PawnState (score, lifes, buffs)
+        PawnShip (if it can be destroyed without losing score/lifeCount, initialSettings can be eliminated, since to reset you can just destroy the pawn and spawn another one)
+
+
+ideia crazy: Implementar galera numa rosquinha pra representar que é toroidal
+
+Plano geral
+{
+    10 levels
+        [X] 1 - 4 cubos saindo pela tangente
+        [X] 2 - 6 cubos em direção horizontal
+        [X] 3 - 10 cubos formato pentagono saindo pela tangente
+        [X] 4 - 14 Cubos em direção vertical
+        [X] 5 - 30 Cubos em espiral indo pra dentro (mto dificil talvez)
+        [X] 6 -
+        [X] 7 -
+        [X] 8 -
+        [X] 9 -
+        [X] 10 -
+
+    2 inimigos
+        [X] EnemyShip - zanza e atira na direção do player
+        [] ? -
+    1 boss
+        [] ? (oumuamua) -
+
+
+    músicas
+        [] gameplay Agitada
+            Teclado, meio pegada da batalha do deltarune
+        [] menu : calma, pra contrastar
+            pensei num sambinha, com o mesmo tema
+        [] música do boss
+
+    Menus
+        [] Intro
+           [X] Start Game
+           [] Settings
+           [X] Exit
+        [] Pause
+           [X] Continue
+           [] Settings
+           [X] Exit
+
+
+    Assets
+        Asteroids
+            Mesh
+            Destruição
+                particula
+                som
+        AsteroidShip
+            Mesh
+            Movimento
+                particula de rastro?
+            Destruição
+                particula
+                som
+            Thrust
+                particula
+                som
+        Coletáveis
+            Mesh
+            Coleta
+                som
+            Armas
+                Mesh
+                tiro
+                    Projetil
+                        Mesh
+                        particula?
+                        som
+        EnemyShip
+            Mesh
+            Explosão
+                Particula
+                Som
+
+
+
+}
+
+Problems
+{
+    Solve Enemies spawning Too close
+    Asteroids some times spawn with no velocity
+}

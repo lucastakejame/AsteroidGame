@@ -23,7 +23,7 @@ private:
 	TArray<class AAsteroid*> mArrayAsteroids;
 
 	UPROPERTY()
-	TArray<class AEnemyShip*> mArrayEnemies;
+	TArray<class ATarget*> mArrayEnemies;
 
 	UPROPERTY()
 	TArray<class ACollectable*> mArrayCollectables;
@@ -33,7 +33,7 @@ private:
 	TSubclassOf<AAsteroid> mpClassAsteroid;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<AEnemyShip> mpClassEnemy;
+	TSubclassOf<ATarget> mpClassEnemy;
 
 	// maps which collectable class is spawnable and the chance weight
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))

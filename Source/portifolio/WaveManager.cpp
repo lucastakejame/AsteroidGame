@@ -328,7 +328,7 @@ void AWaveManager::HandleAsteroidDestruction(ATarget* pTarg)
 
 void AWaveManager::HandleEnemyDestruction(ATarget* pTarg)
 {
-	AEnemyShip* pEnemy = Cast<AEnemyShip>(pTarg);
+	ATarget* pEnemy = Cast<ATarget>(pTarg);
 	if (IsValid(pEnemy))
 	{
 		pEnemy->Destroy();
@@ -361,7 +361,7 @@ void AWaveManager::TryToSpawnEnemy()
 
 		mpClassEnemy = (IsValid(mpClassEnemy)) ? mpClassEnemy : AEnemyShip::StaticClass();
 
-		AEnemyShip* pEnemy = GetWorld()->SpawnActor<AEnemyShip>(mpClassEnemy, t, sp);
+		ATarget* pEnemy = GetWorld()->SpawnActor<ATarget>(mpClassEnemy, t, sp);
 
 		pEnemy->SetHitPoints(50 + mCurrentWave * 25);
 
