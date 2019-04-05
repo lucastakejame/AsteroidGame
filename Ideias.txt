@@ -148,7 +148,6 @@ Possible organization
 ideia crazy: Implementar galera numa rosquinha pra representar que é toroidal
 
 Plano geral
-{
     10 levels
         [X] 1 - 4 cubos saindo pela tangente
         [X] 2 - 6 cubos em direção horizontal
@@ -163,68 +162,66 @@ Plano geral
 
     2 inimigos
         [X] EnemyShip - zanza e atira na direção do player
-        [] ? -
+        [X] Enemy2    -
+
     1 boss
         [] ? (oumuamua) -
 
 
-    músicas
-        [] gameplay Agitada
-            Teclado, meio pegada da batalha do deltarune
-        [] menu : calma, pra contrastar
-            pensei num sambinha, com o mesmo tema
-        [] música do boss
+    Audio
+        SFX
+            [] Asteroids
+                [] Destruction
+            [] AsteroidShip/Enemies
+                [] Destruction
+                [] Thrust
+            [] Collectable
+                [] Collecting
+                [] Guns
+                    [] Shoot
+                        [] Projectile
+                            [] Hit
+
+        [] MUSIC
+            [] gameplay Agitada
+                Teclado, meio pegada da batalha do deltarune
+            [] menu : calma, pra contrastar
+                pensei num sambinha, com o mesmo tema
+            [] música do boss
 
     Menus
-        [] Intro
-           [X] Start Game
-           [] Settings
-           [X] Exit
-        [] Pause
-           [X] Continue
-           [] Settings
-           [X] Exit
+        [] Icones
+            [] Vida
+            [] Collectables
+            [] Cursor
+            [] Slides??
+        [] Intro/Pause
+            [X] Start Game/Continue
+            [X] Settings
+                [X] Music volume
+                [X] SFX volume
+            [X] Exit
 
 
-    Assets
-        Asteroids
-            Mesh
-            Destruição
-                particula
-                som
-        AsteroidShip
-            Mesh
-            Movimento
-                particula de rastro?
-            Destruição
-                particula
-                som
-            Thrust
-                particula
-                som
-        Coletáveis
-            Mesh
-            Coleta
-                som
-            Armas
-                Mesh
-                tiro
-                    Projetil
-                        Mesh
-                        particula?
-                        som
-        EnemyShip
-            Mesh
-            Explosão
-                Particula
-                Som
-
-
-
-}
+    Particle
+        [] Asteroids
+            [] Destruction
+        [] AsteroidShip
+            [] Thrust
+            [] Destruction
+        [] Collectable
+            [] Coleta
+            [] Guns
+                [] Shoot
+                    [] Projectile
+        [] EnemyShip
+            [] Destruction
 
 Problems
-{
-    Solve Enemies spawning Too close
-    Asteroids some times spawn with no velocity
-}
+    Enemies
+        [] Spawning on top of player sometimes
+    Asteroids
+        [] Spawn with no velocity sometimes
+        [] Could have initial velocity in the last impulse direction when spawning chunks
+    Target
+        [] * Handle own destruction, broadcast event dispatcher to wave manager

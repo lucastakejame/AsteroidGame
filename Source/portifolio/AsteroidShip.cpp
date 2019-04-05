@@ -217,7 +217,7 @@ void AAsteroidShip::ResetShipToReviveState()
 	// Reset to initial gun
 	FActorSpawnParameters sp;
 	AGun* pGun = GetWorld()->SpawnActor<AGun>(mInitialGunClass, sp);
-	
+
 	// Attaching gun to this player
 	if (IsValid(pGun)) pGun->ApplyEffect(this);
 }
@@ -236,6 +236,7 @@ void AAsteroidShip::SubtractLife()
 
 	GetWorld()->GetTimerManager().SetTimer(mTimerHandleDeathCooldown, this, &AAsteroidShip::FinishDeathCooldown, mDeathCooldown);
 
+	mOnLosingLife.Broadcast();
 	mOnLifeCountChange.Broadcast(mLifeCount);
 }
 

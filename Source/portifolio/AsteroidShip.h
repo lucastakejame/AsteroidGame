@@ -54,7 +54,7 @@ private:
 
 	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class USoundBase* mpSoundExplosion;
-	
+
 	// view target
 	UPROPERTY(Category = View, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	class ACameraActor* mpCamViewTarget;
@@ -117,7 +117,7 @@ private:
 	// normalized value used to rotate
 	UPROPERTY()
 	float mRotatingValue;
-	
+
 	// timer to count death and ghost time
 	FTimerHandle mTimerHandleDeathCooldown;
 
@@ -130,6 +130,9 @@ public:
 	// Delegates
 	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
 	FNoParamSignature mOnLivesEnded;
+
+	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
+	FNoParamSignature mOnLosingLife;
 
 	UPROPERTY(BlueprintAssignable, Category = "Event Dispatcher")
 	FOneIntSignature mOnScoreChange;
@@ -169,7 +172,7 @@ public:
 
 	// Called every frame
 	virtual void Tick(float deltaTime) override;
-	
+
 	//Clear gun reference
 	virtual void Destroyed() override;
 
@@ -188,7 +191,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetForwardValue(float val);
-	
+
 	UFUNCTION(BlueprintCallable)
 	void SetRotatingValue(float val);
 
