@@ -34,7 +34,7 @@ protected:
 
 	// Will determine with what the projectile should collide
 	FName mProjectileCollisionProfile;
-	
+
 	// Keeps track if gun is on cooldown or not
 	bool mCanShoot;
 
@@ -48,7 +48,7 @@ public:
 
 	// Sets default values for this actor's properties
 	AGun();
-		
+
 	// Getters and setters
 	UFUNCTION()
 	EGunType GetGunType() const { return mGunType; }
@@ -58,7 +58,7 @@ public:
 	void AttachToPawn(APawn* pPawn, const FTransform& crRelativeT);
 
 	// Attach to pawn in pre-determined relative transform
-	virtual void ApplyEffect(APawn* pAffectedPawn) override;
+	void ApplyEffect_Implementation(APawn* pAffectedPawn);
 
 	// Spawn some projectile depending on gun type and if not on cooldown
 	UFUNCTION(BlueprintCallable)

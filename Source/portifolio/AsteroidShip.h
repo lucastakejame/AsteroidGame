@@ -187,6 +187,7 @@ public:
 
 	// Setters
 
+	UFUNCTION(BlueprintCallable)
 	void SetStats(FAsteroidShipStats stats) { mStats = stats; }
 
 	UFUNCTION(BlueprintCallable)

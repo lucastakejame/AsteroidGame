@@ -51,12 +51,12 @@ void AGun::AttachToPawn(APawn* pPawn, const FTransform& crRelativeT)
 }
 
 
-void AGun::ApplyEffect(APawn* pAffectedPawn)
+void AGun::ApplyEffect_Implementation(APawn* pAffectedPawn)
 {
 	AAsteroidShip* pA = Cast<AAsteroidShip>(pAffectedPawn);
 	AEnemyShip* pE = Cast<AEnemyShip>(pAffectedPawn);
 
-	// Note(Lucas): If Other classes use guns, its better to make an interface 
+	// Note(Lucas): If Other classes use guns, its better to make an interface
 	if (IsValid(pA))
 	{
 		pA->SetGun(this);

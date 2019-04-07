@@ -37,7 +37,9 @@ public:
 	void SetCollisionToCollectable();
 
 	// Same thing as a abstract method
-	virtual void ApplyEffect(APawn* pAffectedPawn) { check(0 && "You must override this"); }
+	UFUNCTION(BlueprintNativeEvent)
+	void ApplyEffect(APawn* pAffectedPawn);
+	virtual void ApplyEffect_Implementation(APawn* pAffectedPawn) {}
 
 	// Getter and Setter
 	ECollectableType GetType() { return mType; }
