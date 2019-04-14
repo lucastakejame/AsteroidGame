@@ -11,7 +11,7 @@
 AProjectile::AProjectile()
 {
 	// Static reference to the mesh to use for the projectile
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> ProjectileMeshAsset(TEXT("/Game/TwinStick/Meshes/TwinStickProjectile.TwinStickProjectile"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> ProjectileMeshAsset(TEXT("/Game/Asteroids/Art/Projectile/SM_Projectile.SM_Projectile"));
 
 	// Create mesh component for the projectile sphere
 	mpMeshComponentProjectile = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh0"));
