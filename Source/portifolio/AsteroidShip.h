@@ -196,7 +196,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetRotatingValue(float val);
 
+	UFUNCTION(BlueprintCallable)
 	void SetGun(AGun* pGun);
+
+
+	UFUNCTION(BlueprintCallable)
+	void DeleteGun();
 
 	// Handling encounters
 	// These HAD to be called OnHit and OnOverlap otherwise unreal wouldn't callback

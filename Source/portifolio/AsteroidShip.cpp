@@ -58,6 +58,8 @@ AAsteroidShip::AAsteroidShip()
 	mInitialLifeCount = 3;
 
 	Tags.Add(FName("wrappable"));
+
+	mpMeshComponentShip->ComponentTags.Add("damageable");
 }
 
 // Called when the game starts or when spawned
@@ -105,6 +107,15 @@ void AAsteroidShip::SetGun(AGun* pGun)
 	{
 		if (IsValid(mpGun)) mpGun->Destroy();
 		mpGun = pGun;
+	}
+}
+
+void AAsteroidShip::DeleteGun()
+{
+	if (IsValid(mpGun))
+	{
+		mpGun->Destroy();
+		mpGun = nullptr;
 	}
 }
 

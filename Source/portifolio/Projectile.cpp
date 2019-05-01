@@ -49,7 +49,8 @@ void AProjectile::OnHit(UPrimitiveComponent* pHitComp, AActor* pOtherActor, UPri
 		// apply damage to target through damage interface
 		if ( pOtherActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()) // this is to also consider blueprints
 			&& IsValid(this->Instigator)
-			&& pOtherActor != this->Instigator)
+			&& pOtherActor != this->Instigator
+			&& pOtherComp->ComponentHasTag("damageable"))
 		{
 			// Chose execute version of ReceiveDamage because it is also called on blueprint
 			IDamageInterface::Execute_ReceiveDamage(pOtherActor, this->Instigator, mDamage);

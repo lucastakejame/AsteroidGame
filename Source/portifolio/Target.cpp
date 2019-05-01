@@ -33,6 +33,8 @@ ATarget::ATarget()
 	Tags.Add(FName("doesDamage"));
 	Tags.Add(FName("wrappable"));
 
+	mpMeshComponent->ComponentTags.Add("damageable");
+
 	mLimitSpeed = 200.;
 }
 
@@ -42,7 +44,12 @@ void ATarget::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// NOTE(lucas): Hack to avoid situation of asteroids being with velocity 0 on the beginning
-	if (GetGameTimeSinceCreation() > .1)
+	if(mpMeshComponent->GetComponentVelocity().Size() <= 0.1)
+	{
+		mpMeshComponent->SetPhysicsLinearVelocity(FVector(100,0,0));
+	}
+
+	if (mpMeshComponent->GetComponentVelocity().Size() > mLimitSpeed)
 	{
 		// Guarantee limit speed
 		FVector clampSpeed = mpMeshComponent->GetComponentVelocity().GetClampedToMaxSize(mLimitSpeed);
@@ -72,6 +79,7 @@ void ATarget::ReceiveDamage_Implementation(APawn* pInstigator, float damage)
 		}
 		// Spawner will be in charge of destroying it
 		mOnDeath.Broadcast(this);
-	}
 
+		SetLifeSpan(0.1);
+	}
 }
