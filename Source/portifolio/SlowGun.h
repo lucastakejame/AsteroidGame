@@ -16,5 +16,5 @@ class PORTIFOLIO_API ASlowGun : public AGun
 	
 	ASlowGun();
 
-	virtual void Shoot() override;
+	virtual void Shoot_Implementation() override;
 };

@@ -10,12 +10,12 @@ AFractalGun::AFractalGun()
 	mShootCoolDown = .2;
 }
 
-void AFractalGun::Shoot()
+void AFractalGun::Shoot_Implementation()
 {
 	if (mCanShoot)
 	{
 		// Handle sound and cooldown
-		Super::Shoot();
+		Super::Shoot_Implementation();
 		static FActorSpawnParameters sParams;
 		sParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		sParams.Instigator = Cast<APawn>(GetOwner());

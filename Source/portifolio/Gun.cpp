@@ -72,14 +72,14 @@ void AGun::ApplyEffect_Implementation(APawn* pAffectedPawn)
 
 
 // The child classes call this method if they succeded in shooting
-void AGun::Shoot()
+void AGun::Shoot_Implementation()
 {
-	if (mpSoundFire) UGameplayStatics::PlaySoundAtLocation(this, mpSoundFire, GetActorLocation());
+	if (mpSoundFire) UGameplayStatics::PlaySoundAtLocation(this, mpSoundFire, GetActorLocation());// TODO: FIX INFINITE LOOP (PROBLEMA COM TIMER DE NOVO??)
 
 	mCanShoot = false;
 	//It won't be paused so we don't need to access the reference
 	FTimerHandle th;
-	GetWorldTimerManager().SetTimer(th, this, &AGun::EnableShooting, mShootCoolDown);
+	GetWorldTimerManager().SetTimer(th, this, &AGun::EnableShooting, mShootCoolDown, false, mShootCoolDown);
 }
 
 

@@ -17,5 +17,5 @@ public:
 
 	AFractalGun();
 	
-	virtual void Shoot() override;
+	virtual void Shoot_Implementation() override;
 };

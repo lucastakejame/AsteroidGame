@@ -16,5 +16,5 @@ class PORTIFOLIO_API ANormalGun : public AGun
 	
 	ANormalGun();
 
-	virtual void Shoot() override;
+	virtual void Shoot_Implementation() override;
 };

@@ -36,6 +36,7 @@ protected:
 	FName mProjectileCollisionProfile;
 
 	// Keeps track if gun is on cooldown or not
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool mCanShoot;
 
 	// Gun type identifier
@@ -61,8 +62,9 @@ public:
 	void ApplyEffect_Implementation(APawn* pAffectedPawn);
 
 	// Spawn some projectile depending on gun type and if not on cooldown
-	UFUNCTION(BlueprintCallable)
-	virtual void Shoot();
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void Shoot();
+	virtual void Shoot_Implementation();
 
 	// After cooldown
 	UFUNCTION()

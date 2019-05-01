@@ -16,5 +16,5 @@ class PORTIFOLIO_API ADoubleGun : public AGun
 
 	ADoubleGun();
 
-	virtual void Shoot() override;
+	virtual void Shoot_Implementation() override;
 };

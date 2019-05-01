@@ -12,12 +12,12 @@ ASlowGun::ASlowGun()
 	mShootCoolDown = .2;
 }
 
-void ASlowGun::Shoot()
+void ASlowGun::Shoot_Implementation()
 {
 	if (mCanShoot)
 	{
 		// Handle sound and cooldown
-		Super::Shoot();
+		Super::Shoot_Implementation();
 		static FActorSpawnParameters sParams;
 		sParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		sParams.Instigator = Cast<APawn>(GetOwner());
