@@ -38,7 +38,7 @@ private:
 	// maps which collectable class is spawnable and the chance weight
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	TMap< TSubclassOf<class ACollectable>, float> mMapCollectChance;
-	
+
 	UPROPERTY()
 	FTimerHandle mTimerHandleEnemySpawn;
 
@@ -113,4 +113,8 @@ public:
 	// Spawn a collectable of random sort
 	UFUNCTION(BlueprintCallable)
 	ACollectable* SpawnRandomCollectable(const FTransform& crT);
+
+	// Spawn a collectable
+	UFUNCTION(BlueprintCallable)
+	ACollectable* SpawnCollectable(TSubclassOf<ACollectable> pSpawnClass, const FTransform& crT);
 };

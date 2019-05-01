@@ -116,7 +116,15 @@ void AWaveManager::SpawnWave(int32 n)
 					return FTransform(FRotator(0,angle+180.f,0), radius*ref.RotateAngleAxis(angle, FVector(0,0,1)));
 				};
 
-				SpawnNAsteroids(4, DistributeAround);
+				// Old wave 0
+				// SpawnNAsteroids(4, DistributeAround);
+
+				SpawnNAsteroids(1, DistributeAround);
+				mpAsteroidShip->DeleteGun();
+				TArray<TSubclassOf<ACollectable>> cols;
+				mMapCollectChance.GetKeys(cols);
+				
+				SpawnCollectable(cols[2], FTransform(FRotator(0, 0, 0), FVector(200, 0, 0)));
 
 				// Setting up asteroid velocities and scale
 				for (auto* itAsteroid : mArrayAsteroids)
@@ -422,7 +430,19 @@ ACollectable* AWaveManager::SpawnRandomCollectable(const FTransform& crT)
 			break;
 		}
 	}
-	
+
+	if (IsValid(pSpawnClass))
+	{
+		pResult = GetWorld()->SpawnActor<ACollectable>(pSpawnClass, crT);
+	}
+
+	return pResult;
+}
+
+ACollectable* AWaveManager::SpawnCollectable(TSubclassOf<ACollectable> pSpawnClass, const FTransform& crT)
+{
+	ACollectable* pResult = nullptr;
+
 	if (IsValid(pSpawnClass))
 	{
 		pResult = GetWorld()->SpawnActor<ACollectable>(pSpawnClass, crT);
