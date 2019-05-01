@@ -51,7 +51,11 @@
 		},
 		{
 			"Name": "RenderDocPlugin",
-			"Enabled": true
+			"Enabled": false
+		},
+		{
+			"Name": "Niagara",
+			"Enabled": false
 		}
 	],
 	"TargetPlatforms": [
