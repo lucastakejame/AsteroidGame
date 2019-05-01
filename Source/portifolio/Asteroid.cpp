@@ -33,7 +33,7 @@ void AAsteroid::SetupAsteroid(const FAsteroidInfo& crInfo, float hitPoints)
 	// Random orientation
 	SetActorRotation(FRotationMatrix(FRotator(FMath::FRand() * 360, FMath::FRand() * 360, FMath::FRand() * 360)).ToQuat());
 
-	mHitPoints = hitPoints;
+	//mHitPoints = hitPoints;
 
 	mInfo = crInfo;
 

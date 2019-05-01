@@ -8,19 +8,25 @@
 #include "Asteroid.generated.h"
 
 // This will be used to pass information for asteroid fragments
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FAsteroidInfo
 {
 	GENERATED_BODY()
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector velocity;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector angularVelocity;
+
 	// Asteroid Size, Used to determine if should spawn smaller asteroids
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float scale;
 };
 
 
-UCLASS()
+UCLASS(BlueprintType)
 class PORTIFOLIO_API AAsteroid : public ATarget
 {
 	GENERATED_BODY()
@@ -39,10 +45,11 @@ public:
 	AAsteroid();
 
 	// Getter
-	FAsteroidInfo GetInfo() const { return mInfo; }
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FORCEINLINE FAsteroidInfo GetInfo() const { return mInfo; }
 
 	// update mInfo and applies velocities and scale
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void SetupAsteroid(const FAsteroidInfo& crInfo, float hitPoints);
 
 	// Damage Interface
