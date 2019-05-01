@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "ScreenLimitManager.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType)
 class PORTIFOLIO_API AScreenLimitManager : public AActor
 {
 	GENERATED_BODY()
@@ -30,6 +30,12 @@ public:
 
 	// Keeping actors in limits
 	virtual void Tick(float deltaTime) override;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+		FORCEINLINE float GetLimitWidth() const { return mLimitWidth; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+		FORCEINLINE float GetLimitHeight() const { return mLimitHeight; }
 
 	// corner0 has (minX,minY), corner1 has (maxX, maxY)
 	UFUNCTION(BlueprintCallable)
