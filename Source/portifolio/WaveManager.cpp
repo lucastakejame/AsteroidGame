@@ -37,11 +37,11 @@ void AWaveManager::BeginPlay()
 {
 	Super::BeginPlay();
 	AAsteroidGameMode* pGM = Cast<AAsteroidGameMode>(UGameplayStatics::GetGameMode(this));
-	if (pGM)
-	{
-		pGM->mOnGameStarted.AddDynamic(this, &AWaveManager::StartWaves);
-		pGM->mOnGameEnded.AddDynamic(this, &AWaveManager::ResetCurrentWave);
-	}
+	// if (pGM)
+	// {
+	// 	pGM->mOnGameStarted.AddDynamic(this, &AWaveManager::StartWaves);
+	// 	pGM->mOnGameEnded.AddDynamic(this, &AWaveManager::ResetCurrentWave);
+	// }
 
 	mpAsteroidShip = Cast<AAsteroidShip>(UGameplayStatics::GetPlayerPawn(this, 0));
 }
@@ -120,11 +120,6 @@ void AWaveManager::SpawnWave(int32 n)
 				// SpawnNAsteroids(4, DistributeAround);
 
 				SpawnNAsteroids(1, DistributeAround);
-				mpAsteroidShip->DeleteGun();
-				TArray<TSubclassOf<ACollectable>> cols;
-				mMapCollectChance.GetKeys(cols);
-				
-				SpawnCollectable(cols[2], FTransform(FRotator(0, 0, 0), FVector(200, 0, 0)));
 
 				// Setting up asteroid velocities and scale
 				for (auto* itAsteroid : mArrayAsteroids)

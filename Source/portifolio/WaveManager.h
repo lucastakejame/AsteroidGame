@@ -86,7 +86,7 @@ public:
 	void SpawnWave(int32 n);
 
 	// Sets currentWave to 0
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void ResetCurrentWave();
 
 	// spawn 2 smaller asteroids in place or roll dice to place collectable
